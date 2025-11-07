@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: realmd
+  namespace: mangos-classic
+  labels:
+    app: realmd
+    component: auth-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: realmd
+  template:
+    metadata:
+      labels:
+        app: realmd
+        component: auth-server
+    spec:
+      initContainers:
+      # Esperar a que MySQL esté listo
+      - name: wait-for-mysql
+        image: busybox:1.35
+        command:
+        - sh
+        - -c
+        - |
+          until nc -z mysql-service 3306; do
+            echo "Esperando a MySQL..."
+            sleep 2
+          done
+          echo "MySQL está listo!"
+      containers:
+      - name: realmd
+        image: mangos-classic/realmd:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3724
+          protocol: TCP
+          name: auth
+        env:
+        - name: LOGIN_DATABASE_INFO
+          valueFrom:
+            secretKeyRef:
+              name: database-secrets
+              key: login-db-connection
+        volumeMounts:
+        - name: realmd-config
+          mountPath: /mangos/etc
+          readOnly: true
+        - name: server-logs
+          mountPath: /mangos/logs
+        - name: binaries
+          mountPath: /mangos/bin
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          tcpSocket:
+            port: 3724
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          tcpSocket:
+            port: 3724
+          initialDelaySeconds: 10
+          periodSeconds: 5
+      volumes:
+      - name: realmd-config
+        configMap:
+          name: realmd-config
+      - name: server-logs
+        persistentVolumeClaim:
+          claimName: server-logs-pvc
+      - name: binaries
+        emptyDir: {}  # Los binarios se copiarán desde una imagen builder

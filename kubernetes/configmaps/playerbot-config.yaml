@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: playerbot-config
+  namespace: mangos-classic
+data:
+  playerbot.conf: |
+    ###################################################################################################################
+    # PLAYERBOTS CONFIGURATION
+    ###################################################################################################################
+
+    # Número máximo de bots que un jugador puede tener (0-9)
+    PlayerbotAI.MaxNumBots = 9
+
+    # Habilitar mensajes de debug en whispers
+    PlayerbotAI.DebugWhisper = 0
+
+    # Distancia de seguimiento
+    PlayerbotAI.FollowDistanceMin = 0.5
+    PlayerbotAI.FollowDistanceMax = 1.0
+
+    # Configuración de recolección automática
+    PlayerbotAI.Collect.Combat = 1
+    PlayerbotAI.Collect.Quest = 1
+    PlayerbotAI.Collect.Profession = 1
+    PlayerbotAI.Collect.Loot = 1
+    PlayerbotAI.Collect.Skin = 1
+    PlayerbotAI.Collect.Objects = 1
+
+    # Distancia máxima de recolección (máximo 100)
+    PlayerbotAI.Collect.DistanceMax = 50
+    PlayerbotAI.Collect.Distance = 25
+
+    # Comportamiento en combate
+    PlayerbotAI.Combat.Strategies.Auto = 1
+
+    # Intervalo de actualización (ms)
+    PlayerbotAI.UpdateInterval = 1000
+
+    # Bots random (bots que vagan por el mundo sin dueño)
+    PlayerbotAI.RandomBotAutologin = 0
+    PlayerbotAI.RandomBotCount = 0
+
+    # Configuración avanzada
+    PlayerbotAI.SellGarbage = 1
+    PlayerbotAI.SyncQuestWithPlayer = 0
+    PlayerbotAI.RandomBotSayWithoutMaster = 0
+
+    # Configuración de equipo
+    PlayerbotAI.EquipUpgradeEnable = 1
+
+    # Habilidades
+    PlayerbotAI.AutoLearnTrainerSpells = 1
+    PlayerbotAI.AutoLearnQuestSpells = 1
+
+    # Talentos
+    PlayerbotAI.AutoPickTalents = 1
+
+    # Buffs
+    PlayerbotAI.SelfBotLevel = 1

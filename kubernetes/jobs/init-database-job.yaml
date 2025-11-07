@@ -1,0 +1,78 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: init-database
+  namespace: mangos-classic
+  labels:
+    app: init-database
+spec:
+  template:
+    metadata:
+      labels:
+        app: init-database
+    spec:
+      restartPolicy: OnFailure
+      initContainers:
+      - name: wait-for-mysql
+        image: busybox:1.35
+        command:
+        - sh
+        - -c
+        - |
+          until nc -z mysql-service 3306; do
+            echo "Esperando a MySQL..."
+            sleep 5
+          done
+          echo "MySQL está listo!"
+      containers:
+      - name: init-database
+        image: mysql:8.0
+        command:
+        - /bin/bash
+        - -c
+        - |
+          set -e
+          echo "Inicializando bases de datos de mangos-classic..."
+
+          # Crear bases de datos
+          mysql -h mysql-service -u root -p${MYSQL_ROOT_PASSWORD} <<EOF
+          CREATE DATABASE IF NOT EXISTS classicmangos DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+          CREATE DATABASE IF NOT EXISTS classiccharacters DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+          CREATE DATABASE IF NOT EXISTS classicrealmd DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+          CREATE DATABASE IF NOT EXISTS classiclogs DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+
+          CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';
+
+          GRANT INDEX, SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, LOCK TABLES, CREATE TEMPORARY TABLES
+          ON classicmangos.* TO '${MYSQL_USER}'@'%';
+
+          GRANT INDEX, SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, LOCK TABLES, CREATE TEMPORARY TABLES
+          ON classiccharacters.* TO '${MYSQL_USER}'@'%';
+
+          GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, LOCK TABLES, CREATE TEMPORARY TABLES
+          ON classicrealmd.* TO '${MYSQL_USER}'@'%';
+
+          GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, LOCK TABLES, CREATE TEMPORARY TABLES
+          ON classiclogs.* TO '${MYSQL_USER}'@'%';
+
+          FLUSH PRIVILEGES;
+          EOF
+
+          echo "Bases de datos creadas y usuario configurado."
+          echo "NOTA: Necesitas importar los schemas SQL manualmente o usar el script setup-database.sh"
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: database-secrets
+              key: mysql-root-password
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: database-secrets
+              key: mysql-user
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: database-secrets
+              key: mysql-password

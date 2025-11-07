@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mangos-classic Admin Panel</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h1>🎮 mangos</h1>
+                <p>Admin Panel</p>
+            </div>
+            <ul class="menu">
+                <li><a href="#" data-page="dashboard" class="active">📊 Dashboard</a></li>
+                <li><a href="#" data-page="accounts">👥 Cuentas</a></li>
+                <li><a href="#" data-page="characters">⚔️ Personajes</a></li>
+                <li><a href="#" data-page="items">🎒 Items</a></li>
+                <li><a href="#" data-page="commands">⌨️ Comandos</a></li>
+                <li><a href="#" data-page="server">🖥️ Servidor</a></li>
+            </ul>
+        </nav>
+
+        <main class="content">
+            <!-- Dashboard Page -->
+            <div id="dashboard-page" class="page active">
+                <h2>Dashboard del Servidor</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Cuentas Totales</h3>
+                        <p class="stat-value" id="total-accounts">-</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Personajes</h3>
+                        <p class="stat-value" id="total-characters">-</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Nivel Promedio</h3>
+                        <p class="stat-value" id="avg-level">-</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Jugadores Online</h3>
+                        <p class="stat-value" id="online-players">-</p>
+                    </div>
+                </div>
+
+                <div class="realm-info">
+                    <h3>Información del Reino</h3>
+                    <div id="realm-list"></div>
+                </div>
+            </div>
+
+            <!-- Accounts Page -->
+            <div id="accounts-page" class="page">
+                <div class="page-header">
+                    <h2>Gestión de Cuentas</h2>
+                    <button class="btn btn-primary" onclick="showCreateAccountModal()">➕ Nueva Cuenta</button>
+                </div>
+
+                <div class="search-bar">
+                    <input type="text" id="account-search" placeholder="Buscar cuenta..." onkeyup="searchAccounts()">
+                </div>
+
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Usuario</th>
+                            <th>Email</th>
+                            <th>GM Level</th>
+                            <th>Fecha Registro</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="accounts-table-body">
+                        <tr><td colspan="6">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Characters Page -->
+            <div id="characters-page" class="page">
+                <h2>Gestión de Personajes</h2>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>GUID</th>
+                            <th>Nombre</th>
+                            <th>Cuenta</th>
+                            <th>Nivel</th>
+                            <th>Oro</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="characters-table-body">
+                        <tr><td colspan="6">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Items Page -->
+            <div id="items-page" class="page">
+                <h2>Búsqueda de Items</h2>
+                <div class="search-bar">
+                    <input type="text" id="item-search" placeholder="Buscar item por nombre..." onkeyup="searchItems()">
+                </div>
+                <div id="items-results"></div>
+            </div>
+
+            <!-- Commands Page -->
+            <div id="commands-page" class="page">
+                <h2>Consola de Comandos GM</h2>
+                <div class="command-form">
+                    <input type="text" id="character-target" placeholder="Nombre del personaje (opcional)">
+                    <input type="text" id="command-input" placeholder="Escribe el comando...">
+                    <button onclick="executeCommand()" class="btn btn-primary">Ejecutar</button>
+                </div>
+
+                <div class="common-commands">
+                    <h3>Comandos Comunes</h3>
+                    <div class="command-grid" id="common-commands-grid"></div>
+                </div>
+
+                <div class="command-output">
+                    <h3>Resultado</h3>
+                    <pre id="command-result">Los resultados aparecerán aquí...</pre>
+                </div>
+            </div>
+
+            <!-- Server Page -->
+            <div id="server-page" class="page">
+                <h2>Configuración del Servidor</h2>
+                <div id="realm-config"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Create Account Modal -->
+    <div id="create-account-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('create-account-modal')">&times;</span>
+            <h2>Crear Nueva Cuenta</h2>
+            <form id="create-account-form" onsubmit="createAccount(event)">
+                <div class="form-group">
+                    <label>Usuario:</label>
+                    <input type="text" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label>Contraseña:</label>
+                    <input type="password" name="password" required>
+                </div>
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" name="email">
+                </div>
+                <div class="form-group">
+                    <label>GM Level:</label>
+                    <select name="gmlevel">
+                        <option value="0">0 - Jugador</option>
+                        <option value="1">1 - Moderador</option>
+                        <option value="2">2 - Game Master</option>
+                        <option value="3">3 - Administrador</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Crear Cuenta</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

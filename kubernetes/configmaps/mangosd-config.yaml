@@ -1,0 +1,202 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mangosd-config
+  namespace: mangos-classic
+data:
+  mangosd.conf: |
+    ###################################################################################################################
+    # MANGOSD SERVER CONFIGURATION
+    ###################################################################################################################
+
+    # Conexiones a bases de datos (se sobrescriben con variables de entorno)
+    WorldDatabaseInfo = "mysql-service;3306;mangos;mangos_secure_password;classicmangos"
+    CharacterDatabaseInfo = "mysql-service;3306;mangos;mangos_secure_password;classiccharacters"
+    LoginDatabaseInfo = "mysql-service;3306;mangos;mangos_secure_password;classicrealmd"
+    LogsDatabaseInfo = "mysql-service;3306;mangos;mangos_secure_password;classiclogs"
+
+    # Configuración del servidor
+    BindIP = "0.0.0.0"
+    WorldServerPort = 8085
+
+    # DataDir - donde están los archivos dbc, maps, vmaps, mmaps
+    DataDir = "/mangos/data"
+
+    # Logging
+    LogLevel = 1
+    LogTime = 1
+    LogFile = ""
+    LogTimestamp = 0
+    LogFileLevel = 0
+    LogColors = 0
+    LogFilter_TransportMoves = 1
+    LogFilter_CreatureMoves = 1
+    LogFilter_VisibilityChanges = 1
+    LogFilter_AchievementUpdates = 1
+
+    # Performance
+    UseProcessors = 0
+    ProcessPriority = 1
+    Compression = 1
+    PlayerLimit = 100
+
+    # Opciones de juego
+    Motd = "Bienvenido a mangos-classic en Kubernetes!"
+
+    # Rates de experiencia
+    Rate.XP.Kill = 1
+    Rate.XP.Quest = 1
+    Rate.XP.Explore = 1
+
+    # Rates de drop
+    Rate.Drop.Item.Poor = 1
+    Rate.Drop.Item.Normal = 1
+    Rate.Drop.Item.Uncommon = 1
+    Rate.Drop.Item.Rare = 1
+    Rate.Drop.Item.Epic = 1
+    Rate.Drop.Item.Legendary = 1
+    Rate.Drop.Item.Artifact = 1
+    Rate.Drop.Money = 1
+
+    # Honor y reputación
+    Rate.Honor = 1
+    Rate.Reputation.Gain = 1
+
+    # Criaturas
+    Rate.Creature.Normal.HP = 1
+    Rate.Creature.Elite.Elite.HP = 1
+    Rate.Creature.Elite.RAREELITE.HP = 1
+    Rate.Creature.Elite.WORLDBOSS.HP = 1
+    Rate.Creature.Elite.RARE.HP = 1
+
+    Rate.Creature.Normal.Damage = 1
+    Rate.Creature.Elite.Elite.Damage = 1
+    Rate.Creature.Elite.RAREELITE.Damage = 1
+    Rate.Creature.Elite.WORLDBOSS.Damage = 1
+    Rate.Creature.Elite.RARE.Damage = 1
+
+    # Configuración de GM
+    GM.LoginState = 2
+    GM.Visible = 2
+    GM.AcceptTickets = 2
+    GM.Chat = 2
+    GM.WhisperingTo = 2
+    GM.InGMList.Level = 3
+    GM.InWhoList.Level = 3
+    GM.LogTrade = 1
+    GM.StartLevel = 1
+    GM.AllowInvite = 0
+    GM.AllowFriend = 0
+    GM.LowerSecurity = 0
+
+    # Anticheat
+    Anticheat.Enable = 1
+
+    # Grupo y Raid
+    Group.Raid.LevelRestriction = 1
+
+    # Instancias
+    Instance.ResetTimeHour = 4
+    Instance.UnloadDelay = 1800000
+
+    # Mercado
+    Auction.Deposit.Min = 100
+
+    # Correo
+    MailDeliveryDelay = 3600
+
+    # Opciones de mundo
+    Warden.Enabled = 0
+    Warden.NumMemChecks = 3
+    Warden.NumOtherChecks = 7
+    Warden.ClientResponseDelay = 600
+    Warden.ClientCheckHoldOff = 30
+    Warden.ClientCheckFailAction = 0
+    Warden.BanDuration = 86400
+
+    # Clima
+    Weather = 1
+
+    # Quests
+    Quest.IgnoreRaid = 0
+    Quest.IgnoreAutoAccept = 0
+    Quest.IgnoreAutoComplete = 0
+
+    # Otros
+    AllowTwoSide.Accounts = 0
+    AllowTwoSide.Interaction.Chat = 0
+    AllowTwoSide.Interaction.Channel = 0
+    AllowTwoSide.Interaction.Group = 0
+    AllowTwoSide.Interaction.Guild = 0
+    AllowTwoSide.Interaction.Trade = 0
+    AllowTwoSide.Interaction.Auction = 0
+    AllowTwoSide.Interaction.Mail = 0
+    AllowTwoSide.WhoList = 0
+    AllowTwoSide.AddFriend = 0
+
+    TalentsInspecting = 1
+
+    # Detectar posición bajo mapa
+    DetectPosCollision = 1
+
+    # Límites de chat
+    ChatFlood.MessageCount = 10
+    ChatFlood.MessageDelay = 1
+    ChatFlood.MuteTime = 10
+
+    # Configuración de respawn
+    Respawn.DynamicMode = 0
+    Respawn.DynamicMinimumCreature = 10
+    Respawn.DynamicMinimumGameObject = 10
+    Respawn.DynamicRate = 0.5
+
+    # Configuración de seguridad
+    StrictPlayerNames = 0
+    StrictCharterNames = 0
+    StrictPetNames = 0
+
+    MinPlayerName = 2
+    MinCharterName = 2
+    MinPetName = 2
+
+    CharactersCreatingDisabled = 0
+    CharactersPerAccount = 10
+    CharactersPerRealm = 10
+
+    SkipCinematics = 0
+    MaxPlayerLevel = 60
+    StartPlayerLevel = 1
+    StartPlayerMoney = 0
+
+    # PvP
+    MaxHonorPoints = 75000
+    StartHonorPoints = 0
+
+    # Visibility
+    Visibility.GroupMode = 0
+    Visibility.Distance.Creature = 100
+    Visibility.Distance.Player = 100
+    Visibility.Distance.GameObject = 100
+    Visibility.Distance.Object = 100
+    Visibility.Distance.InFlight = 100
+    Visibility.Distance.Grey.Creature = 1
+    Visibility.Distance.Grey.Object = 10
+
+    # Notificaciones
+    Notify.PlayerLevelChange = 0
+    Notify.MoneyChange = 0
+    Notify.HonorChange = 0
+    Notify.ComposedRankChange = 0
+
+    # Tiempo de guardado
+    PlayerSave.Interval = 900000
+    PlayerSave.Stats.MinLevel = 0
+
+    # Otros sistemas
+    DungeonFinder.Enable = 0
+    Battleground.CastDeserter = 1
+    Battleground.QueueAnnouncer.Enable = 0
+    Battleground.InvitationType = 0
+    Arena.AutoDistributePoints = 0
+    Arena.ArenaSeason.ID = 8
+    Arena.ArenaSeason.InProgress = 1

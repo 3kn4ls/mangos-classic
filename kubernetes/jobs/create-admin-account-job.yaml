@@ -1,0 +1,62 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: create-admin-account
+  namespace: mangos-classic
+  labels:
+    app: create-admin-account
+spec:
+  template:
+    metadata:
+      labels:
+        app: create-admin-account
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: create-admin
+        image: mysql:8.0
+        command:
+        - /bin/bash
+        - -c
+        - |
+          set -e
+          echo "Creando cuenta de administrador..."
+
+          mysql -h mysql-service -u ${MYSQL_USER} -p${MYSQL_PASSWORD} classicrealmd <<EOF
+          -- Eliminar cuenta admin si existe
+          DELETE FROM account WHERE username = 'admin';
+
+          -- Crear nueva cuenta admin con nivel GM 3
+          INSERT INTO account (username, sha_pass_hash, gmlevel, email, joindate)
+          VALUES (
+            'admin',
+            SHA1(CONCAT(UPPER('admin'), ':', UPPER('admin'))),
+            3,
+            'admin@localhost',
+            NOW()
+          );
+
+          SELECT 'Cuenta admin creada exitosamente' AS status;
+          SELECT username, gmlevel FROM account WHERE username = 'admin';
+          EOF
+
+          echo ""
+          echo "==========================================="
+          echo "Cuenta de administrador creada:"
+          echo "  Usuario: admin"
+          echo "  Contraseña: admin"
+          echo "  GM Level: 3 (Administrador)"
+          echo "==========================================="
+          echo ""
+          echo "IMPORTANTE: Cambia la contraseña después del primer login"
+        env:
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: database-secrets
+              key: mysql-user
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: database-secrets
+              key: mysql-password

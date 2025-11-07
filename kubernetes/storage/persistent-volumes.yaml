@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-data-pvc
+  namespace: mangos-classic
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: local-path  # k3s default storage class
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: game-data-pvc
+  namespace: mangos-classic
+  labels:
+    app: mangosd
+spec:
+  accessModes:
+    - ReadWriteMany  # Compartido entre pods de mangosd
+  resources:
+    requests:
+      storage: 10Gi  # Para dbc, maps, vmaps, mmaps (~5GB)
+  storageClassName: local-path
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: server-logs-pvc
+  namespace: mangos-classic
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: local-path

@@ -1,0 +1,88 @@
+# Deployment de realmd con hostPort - Expone puerto 3724 directamente en el nodo
+# RECOMENDADO: Usar este deployment para que los clientes puedan conectar al puerto estándar
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: realmd
+  namespace: mangos-classic
+  labels:
+    app: realmd
+    component: auth-server
+spec:
+  replicas: 1  # Solo 1 replica con hostPort (no puede haber múltiples en el mismo nodo)
+  selector:
+    matchLabels:
+      app: realmd
+  template:
+    metadata:
+      labels:
+        app: realmd
+        component: auth-server
+    spec:
+      # Forzar el pod a un nodo específico si tienes múltiples nodos
+      # nodeSelector:
+      #   kubernetes.io/hostname: <nombre-del-nodo>
+
+      initContainers:
+      - name: wait-for-mysql
+        image: busybox:1.35
+        command:
+        - sh
+        - -c
+        - |
+          until nc -z mysql-service 3306; do
+            echo "Esperando a MySQL..."
+            sleep 2
+          done
+          echo "MySQL está listo!"
+
+      containers:
+      - name: realmd
+        image: mangos-classic/realmd:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3724
+          hostPort: 3724  # IMPORTANTE: Expone puerto 3724 en el nodo
+          protocol: TCP
+          name: auth
+        env:
+        - name: LOGIN_DATABASE_INFO
+          valueFrom:
+            secretKeyRef:
+              name: database-secrets
+              key: login-db-connection
+        volumeMounts:
+        - name: realmd-config
+          mountPath: /mangos/etc
+          readOnly: true
+        - name: server-logs
+          mountPath: /mangos/logs
+        - name: binaries
+          mountPath: /mangos/bin
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          tcpSocket:
+            port: 3724
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          tcpSocket:
+            port: 3724
+          initialDelaySeconds: 10
+          periodSeconds: 5
+
+      volumes:
+      - name: realmd-config
+        configMap:
+          name: realmd-config
+      - name: server-logs
+        persistentVolumeClaim:
+          claimName: server-logs-pvc
+      - name: binaries
+        emptyDir: {}

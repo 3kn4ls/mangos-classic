@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: realmd-config
+  namespace: mangos-classic
+data:
+  realmd.conf: |
+    ###################################################################################################################
+    # REALMD SERVER CONFIGURATION
+    ###################################################################################################################
+
+    # Conexión a base de datos (se sobrescribe con variables de entorno)
+    LoginDatabaseInfo = "mysql-service;3306;mangos;mangos_secure_password;classicrealmd"
+
+    # Puerto de escucha
+    RealmServerPort = 3724
+
+    # Bind address (0.0.0.0 para escuchar en todas las interfaces)
+    BindIP = "0.0.0.0"
+
+    # Use ProcessPriority
+    UseProcessors = 0
+    ProcessPriority = 1
+
+    # Logging
+    LogLevel = 1
+    LogTime = 1
+    LogFile = ""
+    LogTimestamp = 0
+    LogFileLevel = 0
+    LogColors = 0
+
+    # Max ping time
+    MaxPingTime = 30
+
+    # Realm list update interval (segundos)
+    RealmListUpdateInterval = 5
+
+    # Configuración de seguridad
+    StrictVersionCheck = 0
+
+    ###################################################################################################################
+    # CONFIGURACIÓN DE REINOS
+    ###################################################################################################################
+    # Los reinos se configuran directamente en la base de datos (tabla realmlist)

@@ -1,0 +1,21 @@
+# Servicio con hostPort - Expone directamente en los puertos estándar del nodo
+# RECOMENDADO para k3s single-node o cuando controlas los nodos
+apiVersion: v1
+kind: Service
+metadata:
+  name: realmd-service
+  namespace: mangos-classic
+  labels:
+    app: realmd
+spec:
+  selector:
+    app: realmd
+  ports:
+  - port: 3724
+    targetPort: 3724
+    protocol: TCP
+    name: auth
+  type: ClusterIP  # Solo interno, el acceso externo es via hostPort en el deployment
+---
+# Para usar este servicio, también necesitas actualizar el deployment para usar hostPort
+# Ver deployment-hostport.yaml
