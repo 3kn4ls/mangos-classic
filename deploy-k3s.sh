@@ -165,28 +165,42 @@ success "Cuenta admin creada"
 info "Mostrando logs del job..."
 kubectl logs -n $NAMESPACE job/create-admin-account
 
+# Paso 9.5: Actualizar realmlist
+header "PASO 9.5: ACTUALIZAR REALMLIST"
+
+info "Actualizando realmlist con IP del nodo..."
+kubectl delete job update-realmlist -n $NAMESPACE 2>/dev/null || true
+kubectl apply -f kubernetes/jobs/update-realmlist-job.yaml
+
+info "Esperando a que el job complete..."
+kubectl wait --for=condition=complete job/update-realmlist -n $NAMESPACE --timeout=60s
+success "Realmlist actualizado"
+
+info "Mostrando configuración..."
+kubectl logs -n $NAMESPACE job/update-realmlist
+
 # Paso 10: Desplegar realmd
 header "PASO 10: DESPLEGAR SERVIDOR DE AUTENTICACIÓN (realmd)"
 
-info "Desplegando realmd..."
-kubectl apply -f kubernetes/realmd/service.yaml
-kubectl apply -f kubernetes/realmd/deployment.yaml
+info "Desplegando realmd con hostPort (puertos estándar)..."
+kubectl apply -f kubernetes/realmd/service-hostport.yaml
+kubectl apply -f kubernetes/realmd/deployment-hostport.yaml
 success "Realmd desplegado"
 
 info "Esperando a que realmd esté listo..."
 kubectl wait --for=condition=Available deployment/realmd -n $NAMESPACE --timeout=120s
-success "Realmd está listo"
+success "Realmd está listo en puerto 3724"
 
 # Paso 11: Desplegar mangosd
 header "PASO 11: DESPLEGAR SERVIDOR DE JUEGO (mangosd)"
 
-info "Desplegando mangosd..."
-kubectl apply -f kubernetes/mangosd/service.yaml
-kubectl apply -f kubernetes/mangosd/deployment.yaml
+info "Desplegando mangosd con hostPort (puertos estándar)..."
+kubectl apply -f kubernetes/mangosd/deployment-hostport.yaml
 success "Mangosd desplegado"
 
 info "Esperando a que mangosd esté listo..."
 kubectl wait --for=condition=Available deployment/mangosd -n $NAMESPACE --timeout=180s || warning "Mangosd puede tardar en estar listo si faltan los datos del juego"
+success "Mangosd está listo en puerto 8085"
 
 # Paso 12: Mostrar información
 header "DESPLIEGUE COMPLETADO"
@@ -208,20 +222,28 @@ kubectl get pvc -n $NAMESPACE
 
 echo ""
 warning "PRÓXIMOS PASOS:"
-echo "  1. Importar schemas SQL a la base de datos"
+echo "  1. Copiar datos del juego (dbc, maps, vmaps, mmaps) al servidor"
+echo "     POD=\$(kubectl get pod -n $NAMESPACE -l app=mangosd -o jsonpath='{.items[0].metadata.name}')"
+echo "     kubectl cp /ruta/a/dbc $NAMESPACE/\${POD}:/mangos/data/dbc"
+echo "     kubectl cp /ruta/a/maps $NAMESPACE/\${POD}:/mangos/data/maps"
+echo "     kubectl cp /ruta/a/vmaps $NAMESPACE/\${POD}:/mangos/data/vmaps"
+echo "     kubectl cp /ruta/a/mmaps $NAMESPACE/\${POD}:/mangos/data/mmaps"
+echo ""
+echo "  2. Importar schemas SQL a la base de datos"
 echo "     kubectl exec -it mysql-0 -n $NAMESPACE -- bash"
 echo "     # Luego ejecutar los scripts SQL"
 echo ""
-echo "  2. Copiar datos del juego (dbc, maps, vmaps, mmaps) al PVC game-data-pvc"
-echo "     kubectl cp /ruta/a/dbc mangos-classic/mangosd-xxx:/mangos/data/"
-echo ""
 echo "  3. Descargar e importar classic-db (base de datos del mundo)"
+echo "     Ver: https://github.com/cmangos/classic-db"
 echo ""
-echo "  4. Actualizar la tabla realmlist en la base de datos realmd"
-echo "     con la IP externa de tu servidor"
+echo "  4. Verificar conectividad:"
+echo "     ./check-connectivity.sh"
 echo ""
-echo "  5. Conectar con el cliente WoW 1.12.1"
-echo "     Configurar realmlist.wtf con la IP de realmd-service"
+echo "  5. Configurar cliente WoW 1.12.1:"
+# Obtener IP del nodo
+NODE_IP=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
+echo "     Editar realmlist.wtf:"
+echo "     set realmlist $NODE_IP"
 echo ""
 
 info "Para ver logs:"

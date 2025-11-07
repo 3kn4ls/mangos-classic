@@ -1,0 +1,96 @@
+# Job para actualizar la IP del realmlist automáticamente
+# Ejecutar después del despliegue para configurar la IP correcta
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: update-realmlist
+  namespace: mangos-classic
+  labels:
+    app: update-realmlist
+spec:
+  template:
+    metadata:
+      labels:
+        app: update-realmlist
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: update-realmlist
+        image: mysql:8.0
+        command:
+        - /bin/bash
+        - -c
+        - |
+          set -e
+
+          echo "Actualizando realmlist con IP del nodo..."
+
+          # Obtener la IP del nodo desde variables de entorno de Kubernetes
+          # En k3s, usamos la IP interna del nodo
+          NODE_IP="${NODE_IP:-127.0.0.1}"
+
+          echo "IP del nodo: $NODE_IP"
+          echo "Puerto del juego: 8085"
+
+          # Conectar a MySQL y actualizar/crear realm
+          mysql -h mysql-service -u ${MYSQL_USER} -p${MYSQL_PASSWORD} classicrealmd <<EOF
+
+          -- Eliminar realm existente si existe
+          DELETE FROM realmlist WHERE id = 1;
+
+          -- Crear realm con la IP correcta
+          INSERT INTO realmlist (
+            id,
+            name,
+            address,
+            port,
+            icon,
+            realmflags,
+            timezone,
+            allowedSecurityLevel,
+            population,
+            realmbuilds
+          ) VALUES (
+            1,
+            'mangos-classic k3s',
+            '${NODE_IP}',
+            8085,
+            0,
+            0,
+            1,
+            0,
+            0.0,
+            '5875 6005 6141'
+          );
+
+          SELECT 'Realmlist actualizado exitosamente' AS status;
+          SELECT * FROM realmlist WHERE id = 1;
+          EOF
+
+          echo ""
+          echo "==========================================="
+          echo "Realm configurado:"
+          echo "  Nombre: mangos-classic k3s"
+          echo "  IP: ${NODE_IP}"
+          echo "  Puerto: 8085"
+          echo "==========================================="
+          echo ""
+          echo "IMPORTANTE:"
+          echo "Configura tu cliente WoW con:"
+          echo "  realmlist.wtf -> set realmlist ${NODE_IP}"
+          echo ""
+        env:
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: database-secrets
+              key: mysql-user
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: database-secrets
+              key: mysql-password
+        - name: NODE_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP  # IP del nodo donde corre el pod
