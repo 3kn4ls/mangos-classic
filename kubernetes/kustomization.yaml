@@ -1,0 +1,52 @@
+# Kustomization para despliegue completo de mangos-classic
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: mangos-classic
+
+resources:
+  # Base
+  - base/namespace.yaml
+
+  # Secrets y ConfigMaps
+  - secrets/database-secrets.yaml
+  - configmaps/realmd-config.yaml
+  - configmaps/mangosd-config.yaml
+  - configmaps/playerbot-config.yaml
+
+  # Storage
+  - storage/persistent-volumes.yaml
+
+  # Database
+  - database/service.yaml
+  - database/statefulset.yaml
+
+  # Realmd
+  - realmd/service.yaml
+  - realmd/deployment.yaml
+
+  # Mangosd
+  - mangosd/service.yaml
+  - mangosd/deployment.yaml
+
+  # Jobs (comentados por defecto, ejecutar manualmente)
+  # - jobs/init-database-job.yaml
+  # - jobs/create-admin-account-job.yaml
+
+# Imágenes
+images:
+  - name: mangos-classic/realmd
+    newName: localhost:5000/mangos-classic/realmd
+    newTag: latest
+  - name: mangos-classic/mangosd
+    newName: localhost:5000/mangos-classic/mangosd
+    newTag: latest
+
+# Labels comunes
+commonLabels:
+  project: mangos-classic
+  managed-by: kustomize
+
+# Annotations comunes
+commonAnnotations:
+  documentation: "https://github.com/cmangos/mangos-classic"

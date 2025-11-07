@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mangosd-service
+  namespace: mangos-classic
+  labels:
+    app: mangosd
+spec:
+  selector:
+    app: mangosd
+  ports:
+  - port: 8085
+    targetPort: 8085
+    protocol: TCP
+    name: game
+    nodePort: 30085  # Puerto externo accesible
+  type: NodePort
+---
+# Alternativa con LoadBalancer
+apiVersion: v1
+kind: Service
+metadata:
+  name: mangosd-loadbalancer
+  namespace: mangos-classic
+  labels:
+    app: mangosd
+  annotations:
+    metallb.universe.tf/address-pool: default
+spec:
+  selector:
+    app: mangosd
+  ports:
+  - port: 8085
+    targetPort: 8085
+    protocol: TCP
+    name: game
+  type: LoadBalancer

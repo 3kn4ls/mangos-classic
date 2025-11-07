@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: realmd-service
+  namespace: mangos-classic
+  labels:
+    app: realmd
+spec:
+  selector:
+    app: realmd
+  ports:
+  - port: 3724
+    targetPort: 3724
+    protocol: TCP
+    name: auth
+    # Para k3s, usar NodePort o LoadBalancer
+    nodePort: 30724  # Puerto externo accesible
+  type: NodePort
+---
+# Alternativa con LoadBalancer (si tu k3s tiene un load balancer configurado)
+apiVersion: v1
+kind: Service
+metadata:
+  name: realmd-loadbalancer
+  namespace: mangos-classic
+  labels:
+    app: realmd
+  annotations:
+    # Para k3s con metallb o similar
+    metallb.universe.tf/address-pool: default
+spec:
+  selector:
+    app: realmd
+  ports:
+  - port: 3724
+    targetPort: 3724
+    protocol: TCP
+    name: auth
+  type: LoadBalancer

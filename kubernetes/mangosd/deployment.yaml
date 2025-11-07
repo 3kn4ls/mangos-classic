@@ -1,0 +1,129 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mangosd
+  namespace: mangos-classic
+  labels:
+    app: mangosd
+    component: game-server
+spec:
+  replicas: 1  # Normalmente 1 servidor de juego
+  selector:
+    matchLabels:
+      app: mangosd
+  template:
+    metadata:
+      labels:
+        app: mangosd
+        component: game-server
+    spec:
+      initContainers:
+      # Esperar a que MySQL esté listo
+      - name: wait-for-mysql
+        image: busybox:1.35
+        command:
+        - sh
+        - -c
+        - |
+          until nc -z mysql-service 3306; do
+            echo "Esperando a MySQL..."
+            sleep 2
+          done
+          echo "MySQL está listo!"
+
+      # Verificar que existan los datos del juego
+      - name: check-game-data
+        image: busybox:1.35
+        command:
+        - sh
+        - -c
+        - |
+          echo "Verificando datos del juego..."
+          if [ ! -d "/mangos/data/dbc" ]; then
+            echo "ERROR: No se encontraron datos DBC. Por favor, carga los datos extraídos del cliente."
+            echo "Necesitas copiar dbc/, maps/, vmaps/, mmaps/ al volumen game-data-pvc"
+            exit 1
+          fi
+          echo "Datos del juego encontrados."
+        volumeMounts:
+        - name: game-data
+          mountPath: /mangos/data
+
+      containers:
+      - name: mangosd
+        image: mangos-classic/mangosd:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8085
+          protocol: TCP
+          name: game
+        env:
+        - name: WORLD_DATABASE_INFO
+          valueFrom:
+            secretKeyRef:
+              name: database-secrets
+              key: world-db-connection
+        - name: CHARACTER_DATABASE_INFO
+          valueFrom:
+            secretKeyRef:
+              name: database-secrets
+              key: characters-db-connection
+        - name: LOGIN_DATABASE_INFO
+          valueFrom:
+            secretKeyRef:
+              name: database-secrets
+              key: login-db-connection
+        - name: LOGS_DATABASE_INFO
+          valueFrom:
+            secretKeyRef:
+              name: database-secrets
+              key: logs-db-connection
+        volumeMounts:
+        - name: mangosd-config
+          mountPath: /mangos/etc
+          readOnly: true
+        - name: playerbot-config
+          mountPath: /mangos/etc/playerbot.conf
+          subPath: playerbot.conf
+          readOnly: true
+        - name: game-data
+          mountPath: /mangos/data
+          readOnly: true
+        - name: server-logs
+          mountPath: /mangos/logs
+        - name: binaries
+          mountPath: /mangos/bin
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "8Gi"
+            cpu: "4000m"
+        livenessProbe:
+          tcpSocket:
+            port: 8085
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+        readinessProbe:
+          tcpSocket:
+            port: 8085
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+      volumes:
+      - name: mangosd-config
+        configMap:
+          name: mangosd-config
+      - name: playerbot-config
+        configMap:
+          name: playerbot-config
+      - name: game-data
+        persistentVolumeClaim:
+          claimName: game-data-pvc
+      - name: server-logs
+        persistentVolumeClaim:
+          claimName: server-logs-pvc
+      - name: binaries
+        emptyDir: {}
