@@ -1,0 +1,33 @@
+# Ingress para acceso web al panel de administración
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: admin-panel-ingress
+  namespace: mangos-classic
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"  # Si usas cert-manager
+spec:
+  ingressClassName: traefik  # k3s usa Traefik por defecto
+  rules:
+  - host: admin.mangos.local  # Cambiar por tu dominio
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: admin-web-service
+            port:
+              number: 80
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: admin-api-service
+            port:
+              number: 3000
+  # tls:
+  # - hosts:
+  #   - admin.mangos.local
+  #   secretName: admin-panel-tls
