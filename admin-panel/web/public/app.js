@@ -3,6 +3,36 @@ const API_URL = window.location.hostname === 'localhost'
     ? 'http://localhost:3000/api'
     : '/api';
 
+// Mobile Menu Toggle
+const menuToggle = document.getElementById('menuToggle');
+const sidebar = document.getElementById('sidebar');
+const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+if (menuToggle) {
+    menuToggle.addEventListener('click', () => {
+        menuToggle.classList.toggle('active');
+        sidebar.classList.toggle('active');
+        sidebarOverlay.classList.toggle('active');
+    });
+
+    sidebarOverlay.addEventListener('click', () => {
+        menuToggle.classList.remove('active');
+        sidebar.classList.remove('active');
+        sidebarOverlay.classList.remove('active');
+    });
+
+    // Close menu when clicking on a link (mobile)
+    document.querySelectorAll('.menu a').forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                menuToggle.classList.remove('active');
+                sidebar.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+            }
+        });
+    });
+}
+
 // Navigation
 document.querySelectorAll('.menu a').forEach(link => {
     link.addEventListener('click', (e) => {
@@ -33,6 +63,14 @@ function showPage(pageName) {
             loadCharacters();
             break;
         case 'items':
+            break;
+        case 'skills':
+            break;
+        case 'spells':
+            break;
+        case 'reputations':
+            break;
+        case 'quests':
             break;
         case 'commands':
             loadCommands();
@@ -244,5 +282,210 @@ async function loadServerInfo() {
     }
 }
 
+// Skills Search
+let skillsSearchTimeout;
+async function searchSkills() {
+    clearTimeout(skillsSearchTimeout);
+    const query = document.getElementById('skill-search').value;
+
+    if (query.length < 2) {
+        document.getElementById('skills-results').innerHTML = '<p style="text-align:center; color:#7f8c8d;">Escribe al menos 2 caracteres para buscar...</p>';
+        return;
+    }
+
+    skillsSearchTimeout = setTimeout(async () => {
+        try {
+            const response = await fetch(`${API_URL}/skills/search?q=${encodeURIComponent(query)}`);
+            const skills = await response.json();
+
+            const results = document.getElementById('skills-results');
+            if (skills.length === 0) {
+                results.innerHTML = '<p style="text-align:center; color:#7f8c8d;">No se encontraron skills.</p>';
+                return;
+            }
+
+            results.innerHTML = skills.map(skill => `
+                <div class="result-card" onclick="copyToClipboard('.learn ${skill.id}')">
+                    <span class="card-id">ID: ${skill.id}</span>
+                    <h4>${skill.name}</h4>
+                    <p><strong>Categoría:</strong> ${skill.category || 'N/A'}</p>
+                    <div class="actions">
+                        <button class="btn btn-small btn-primary" onclick="fillCommand('.learn ${skill.id}'); event.stopPropagation();">Aprender Skill</button>
+                        <button class="btn btn-small btn-success" onclick="copyToClipboard('${skill.id}'); event.stopPropagation();">Copiar ID</button>
+                    </div>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Error searching skills:', error);
+            document.getElementById('skills-results').innerHTML = '<p style="text-align:center; color:#e74c3c;">Error al buscar skills.</p>';
+        }
+    }, 300);
+}
+
+// Spells Search
+let spellsSearchTimeout;
+async function searchSpells() {
+    clearTimeout(spellsSearchTimeout);
+    const query = document.getElementById('spell-search').value;
+
+    if (query.length < 2) {
+        document.getElementById('spells-results').innerHTML = '<p style="text-align:center; color:#7f8c8d;">Escribe al menos 2 caracteres para buscar...</p>';
+        return;
+    }
+
+    spellsSearchTimeout = setTimeout(async () => {
+        try {
+            const response = await fetch(`${API_URL}/spells/search?q=${encodeURIComponent(query)}`);
+            const spells = await response.json();
+
+            const results = document.getElementById('spells-results');
+            if (spells.length === 0) {
+                results.innerHTML = '<p style="text-align:center; color:#7f8c8d;">No se encontraron hechizos.</p>';
+                return;
+            }
+
+            results.innerHTML = spells.map(spell => `
+                <div class="result-card" onclick="copyToClipboard('.learn ${spell.id}')">
+                    <span class="card-id">ID: ${spell.id}</span>
+                    <h4>${spell.name}</h4>
+                    <p><strong>Rango:</strong> ${spell.rank || 'N/A'}</p>
+                    <p><strong>Nivel:</strong> ${spell.level || 0}</p>
+                    <div class="actions">
+                        <button class="btn btn-small btn-primary" onclick="fillCommand('.learn ${spell.id}'); event.stopPropagation();">Aprender</button>
+                        <button class="btn btn-small btn-success" onclick="fillCommand('.cast ${spell.id}'); event.stopPropagation();">Castear</button>
+                        <button class="btn btn-small btn-success" onclick="copyToClipboard('${spell.id}'); event.stopPropagation();">Copiar ID</button>
+                    </div>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Error searching spells:', error);
+            document.getElementById('spells-results').innerHTML = '<p style="text-align:center; color:#e74c3c;">Error al buscar hechizos.</p>';
+        }
+    }, 300);
+}
+
+// Reputations Search
+let reputationsSearchTimeout;
+async function searchReputations() {
+    clearTimeout(reputationsSearchTimeout);
+    const query = document.getElementById('reputation-search').value;
+
+    if (query.length < 2) {
+        document.getElementById('reputations-results').innerHTML = '<p style="text-align:center; color:#7f8c8d;">Escribe al menos 2 caracteres para buscar...</p>';
+        return;
+    }
+
+    reputationsSearchTimeout = setTimeout(async () => {
+        try {
+            const response = await fetch(`${API_URL}/reputations/search?q=${encodeURIComponent(query)}`);
+            const reputations = await response.json();
+
+            const results = document.getElementById('reputations-results');
+            if (reputations.length === 0) {
+                results.innerHTML = '<p style="text-align:center; color:#7f8c8d;">No se encontraron facciones.</p>';
+                return;
+            }
+
+            results.innerHTML = reputations.map(rep => `
+                <div class="result-card" onclick="copyToClipboard('.modify reputation ${rep.id} 42999')">
+                    <span class="card-id">ID: ${rep.id}</span>
+                    <h4>${rep.name}</h4>
+                    <p><strong>Facción:</strong> ${rep.team || 'Neutral'}</p>
+                    <div class="actions">
+                        <button class="btn btn-small btn-primary" onclick="fillCommand('.modify reputation ${rep.id} 42999'); event.stopPropagation();">Exaltado</button>
+                        <button class="btn btn-small btn-success" onclick="copyToClipboard('${rep.id}'); event.stopPropagation();">Copiar ID</button>
+                    </div>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Error searching reputations:', error);
+            document.getElementById('reputations-results').innerHTML = '<p style="text-align:center; color:#e74c3c;">Error al buscar facciones.</p>';
+        }
+    }, 300);
+}
+
+// Quests Search
+let questsSearchTimeout;
+async function searchQuests() {
+    clearTimeout(questsSearchTimeout);
+    const query = document.getElementById('quest-search').value;
+
+    if (query.length < 2) {
+        document.getElementById('quests-results').innerHTML = '<p style="text-align:center; color:#7f8c8d;">Escribe al menos 2 caracteres para buscar...</p>';
+        return;
+    }
+
+    questsSearchTimeout = setTimeout(async () => {
+        try {
+            const response = await fetch(`${API_URL}/quests/search?q=${encodeURIComponent(query)}`);
+            const quests = await response.json();
+
+            const results = document.getElementById('quests-results');
+            if (quests.length === 0) {
+                results.innerHTML = '<p style="text-align:center; color:#7f8c8d;">No se encontraron misiones.</p>';
+                return;
+            }
+
+            results.innerHTML = quests.map(quest => `
+                <div class="result-card" onclick="copyToClipboard('.quest add ${quest.id}')">
+                    <span class="card-id">ID: ${quest.id}</span>
+                    <h4>${quest.title}</h4>
+                    <p><strong>Nivel:</strong> ${quest.level || 0} | <strong>Min Level:</strong> ${quest.minLevel || 0}</p>
+                    <div class="actions">
+                        <button class="btn btn-small btn-primary" onclick="fillCommand('.quest add ${quest.id}'); event.stopPropagation();">Agregar</button>
+                        <button class="btn btn-small btn-success" onclick="fillCommand('.quest complete ${quest.id}'); event.stopPropagation();">Completar</button>
+                        <button class="btn btn-small btn-success" onclick="copyToClipboard('${quest.id}'); event.stopPropagation();">Copiar ID</button>
+                    </div>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Error searching quests:', error);
+            document.getElementById('quests-results').innerHTML = '<p style="text-align:center; color:#e74c3c;">Error al buscar misiones.</p>';
+        }
+    }, 300);
+}
+
+// Copy to clipboard utility
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showNotification('Copiado al portapapeles!');
+    }).catch(err => {
+        console.error('Error al copiar:', err);
+    });
+}
+
+// Show notification
+function showNotification(message) {
+    const notification = document.createElement('div');
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #2ecc71;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 5px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
+    `;
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 2000);
+}
+
 // Initialize
 loadDashboard();
+
+// Register Service Worker for PWA
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('Service Worker registrado:', reg.scope))
+            .catch(err => console.log('Error al registrar Service Worker:', err));
+    });
+}
