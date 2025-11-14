@@ -9,6 +9,10 @@ const characterRoutes = require('../routes/characters');
 const itemRoutes = require('../routes/items');
 const serverRoutes = require('../routes/server');
 const commandRoutes = require('../routes/commands');
+const skillRoutes = require('../routes/skills');
+const spellRoutes = require('../routes/spells');
+const reputationRoutes = require('../routes/reputations');
+const questRoutes = require('../routes/quests');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -41,6 +45,10 @@ app.use('/api/characters', characterRoutes);
 app.use('/api/items', itemRoutes);
 app.use('/api/server', serverRoutes);
 app.use('/api/commands', commandRoutes);
+app.use('/api/skills', skillRoutes);
+app.use('/api/spells', spellRoutes);
+app.use('/api/reputations', reputationRoutes);
+app.use('/api/quests', questRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

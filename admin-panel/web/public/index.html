@@ -3,12 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2c3e50">
+    <meta name="description" content="Panel de administración para MaNGOS Classic Server">
     <title>mangos-classic Admin Panel</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
 </head>
 <body>
+    <!-- Mobile Header -->
+    <header class="mobile-header">
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <div class="mobile-logo">
+            <h1>🎮 mangos</h1>
+        </div>
+    </header>
+
     <div class="container">
-        <nav class="sidebar">
+        <nav class="sidebar" id="sidebar">
             <div class="logo">
                 <h1>🎮 mangos</h1>
                 <p>Admin Panel</p>
@@ -18,10 +34,17 @@
                 <li><a href="#" data-page="accounts">👥 Cuentas</a></li>
                 <li><a href="#" data-page="characters">⚔️ Personajes</a></li>
                 <li><a href="#" data-page="items">🎒 Items</a></li>
+                <li><a href="#" data-page="skills">🎯 Skills</a></li>
+                <li><a href="#" data-page="spells">✨ Hechizos</a></li>
+                <li><a href="#" data-page="reputations">⭐ Reputaciones</a></li>
+                <li><a href="#" data-page="quests">📜 Misiones</a></li>
                 <li><a href="#" data-page="commands">⌨️ Comandos</a></li>
                 <li><a href="#" data-page="server">🖥️ Servidor</a></li>
             </ul>
         </nav>
+
+        <!-- Overlay for mobile menu -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
         <main class="content">
             <!-- Dashboard Page -->
@@ -133,6 +156,54 @@
             <div id="server-page" class="page">
                 <h2>Configuración del Servidor</h2>
                 <div id="realm-config"></div>
+            </div>
+
+            <!-- Skills Page -->
+            <div id="skills-page" class="page">
+                <h2>🎯 Buscador de Skills</h2>
+                <div class="search-bar">
+                    <input type="text" id="skill-search" placeholder="Buscar skill por nombre o ID..." onkeyup="searchSkills()">
+                </div>
+                <div class="info-box">
+                    <p>Busca skills para obtener sus IDs y ejecutar comandos como: <code>.learn [skill_id]</code></p>
+                </div>
+                <div id="skills-results" class="results-grid"></div>
+            </div>
+
+            <!-- Spells Page -->
+            <div id="spells-page" class="page">
+                <h2>✨ Buscador de Hechizos</h2>
+                <div class="search-bar">
+                    <input type="text" id="spell-search" placeholder="Buscar hechizo por nombre o ID..." onkeyup="searchSpells()">
+                </div>
+                <div class="info-box">
+                    <p>Busca hechizos para obtener sus IDs y ejecutar comandos como: <code>.learn [spell_id]</code> o <code>.cast [spell_id]</code></p>
+                </div>
+                <div id="spells-results" class="results-grid"></div>
+            </div>
+
+            <!-- Reputations Page -->
+            <div id="reputations-page" class="page">
+                <h2>⭐ Buscador de Reputaciones</h2>
+                <div class="search-bar">
+                    <input type="text" id="reputation-search" placeholder="Buscar facción por nombre o ID..." onkeyup="searchReputations()">
+                </div>
+                <div class="info-box">
+                    <p>Busca facciones para obtener sus IDs y ejecutar comandos como: <code>.modify reputation [faction_id] [value]</code></p>
+                </div>
+                <div id="reputations-results" class="results-grid"></div>
+            </div>
+
+            <!-- Quests Page -->
+            <div id="quests-page" class="page">
+                <h2>📜 Buscador de Misiones</h2>
+                <div class="search-bar">
+                    <input type="text" id="quest-search" placeholder="Buscar misión por nombre o ID..." onkeyup="searchQuests()">
+                </div>
+                <div class="info-box">
+                    <p>Busca misiones para obtener sus IDs y ejecutar comandos como: <code>.quest add [quest_id]</code> o <code>.quest complete [quest_id]</code></p>
+                </div>
+                <div id="quests-results" class="results-grid"></div>
             </div>
         </main>
     </div>
