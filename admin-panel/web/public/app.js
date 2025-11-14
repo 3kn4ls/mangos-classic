@@ -260,7 +260,14 @@ async function loadItems(page = 1) {
 
         const results = document.getElementById('items-results');
 
-        if (!result.data || result.data.length === 0) {
+        // Validate response structure
+        if (!result || typeof result !== 'object') {
+            showError('items-results', 'Respuesta inválida del servidor.');
+            return;
+        }
+
+        // Check if data exists and is an array
+        if (!result.data || !Array.isArray(result.data) || result.data.length === 0) {
             showNoResults('items-results', query ? 'No se encontraron items.' : 'No hay items disponibles.');
             return;
         }
@@ -277,7 +284,9 @@ async function loadItems(page = 1) {
             </div>
         `).join('');
 
-        renderPagination('items-pagination', result.pagination, 'loadItems');
+        if (result.pagination) {
+            renderPagination('items-pagination', result.pagination, 'loadItems');
+        }
     } catch (error) {
         console.error('Error loading items:', error);
         showError('items-results');
@@ -305,7 +314,14 @@ async function loadSkills(page = 1) {
 
         const results = document.getElementById('skills-results');
 
-        if (!result.data || result.data.length === 0) {
+        // Validate response structure
+        if (!result || typeof result !== 'object') {
+            showError('skills-results', 'Respuesta inválida del servidor.');
+            return;
+        }
+
+        // Check if data exists and is an array
+        if (!result.data || !Array.isArray(result.data) || result.data.length === 0) {
             showNoResults('skills-results', query ? 'No se encontraron skills.' : 'No hay skills disponibles.');
             return;
         }
@@ -322,7 +338,9 @@ async function loadSkills(page = 1) {
             </div>
         `).join('');
 
-        renderPagination('skills-pagination', result.pagination, 'loadSkills');
+        if (result.pagination) {
+            renderPagination('skills-pagination', result.pagination, 'loadSkills');
+        }
     } catch (error) {
         console.error('Error loading skills:', error);
         showError('skills-results');
@@ -350,7 +368,14 @@ async function loadSpells(page = 1) {
 
         const results = document.getElementById('spells-results');
 
-        if (!result.data || result.data.length === 0) {
+        // Validate response structure
+        if (!result || typeof result !== 'object') {
+            showError('spells-results', 'Respuesta inválida del servidor.');
+            return;
+        }
+
+        // Check if data exists and is an array
+        if (!result.data || !Array.isArray(result.data) || result.data.length === 0) {
             showNoResults('spells-results', query ? 'No se encontraron hechizos.' : 'No hay hechizos disponibles.');
             return;
         }
@@ -368,7 +393,9 @@ async function loadSpells(page = 1) {
             </div>
         `).join('');
 
-        renderPagination('spells-pagination', result.pagination, 'loadSpells');
+        if (result.pagination) {
+            renderPagination('spells-pagination', result.pagination, 'loadSpells');
+        }
     } catch (error) {
         console.error('Error loading spells:', error);
         showError('spells-results');
@@ -396,7 +423,14 @@ async function loadReputations(page = 1) {
 
         const results = document.getElementById('reputations-results');
 
-        if (!result.data || result.data.length === 0) {
+        // Validate response structure
+        if (!result || typeof result !== 'object') {
+            showError('reputations-results', 'Respuesta inválida del servidor.');
+            return;
+        }
+
+        // Check if data exists and is an array
+        if (!result.data || !Array.isArray(result.data) || result.data.length === 0) {
             showNoResults('reputations-results', query ? 'No se encontraron facciones.' : 'No hay facciones disponibles.');
             return;
         }
@@ -413,7 +447,9 @@ async function loadReputations(page = 1) {
             </div>
         `).join('');
 
-        renderPagination('reputations-pagination', result.pagination, 'loadReputations');
+        if (result.pagination) {
+            renderPagination('reputations-pagination', result.pagination, 'loadReputations');
+        }
     } catch (error) {
         console.error('Error loading reputations:', error);
         showError('reputations-results');
@@ -441,7 +477,14 @@ async function loadQuests(page = 1) {
 
         const results = document.getElementById('quests-results');
 
-        if (!result.data || result.data.length === 0) {
+        // Validate response structure
+        if (!result || typeof result !== 'object') {
+            showError('quests-results', 'Respuesta inválida del servidor.');
+            return;
+        }
+
+        // Check if data exists and is an array
+        if (!result.data || !Array.isArray(result.data) || result.data.length === 0) {
             showNoResults('quests-results', query ? 'No se encontraron misiones.' : 'No hay misiones disponibles.');
             return;
         }
@@ -459,7 +502,9 @@ async function loadQuests(page = 1) {
             </div>
         `).join('');
 
-        renderPagination('quests-pagination', result.pagination, 'loadQuests');
+        if (result.pagination) {
+            renderPagination('quests-pagination', result.pagination, 'loadQuests');
+        }
     } catch (error) {
         console.error('Error loading quests:', error);
         showError('quests-results');
