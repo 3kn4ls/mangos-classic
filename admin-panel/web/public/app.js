@@ -280,6 +280,7 @@ async function loadItems(page = 1) {
                 <div class="actions">
                     <button class="btn btn-small btn-primary" onclick="fillCommand('.additem ${item.entry}')">Dar Item</button>
                     <button class="btn btn-small btn-success" onclick="copyToClipboard('${item.entry}')">Copiar ID</button>
+                    <button class="btn btn-small btn-info" onclick="openWowhead('item', ${item.entry}, '${item.name.replace(/'/g, "\\'")}'); event.stopPropagation();">Wowhead</button>
                 </div>
             </div>
         `).join('');
@@ -334,6 +335,7 @@ async function loadSkills(page = 1) {
                 <div class="actions">
                     <button class="btn btn-small btn-primary" onclick="fillCommand('.learn ${skill.id}'); event.stopPropagation();">Aprender Skill</button>
                     <button class="btn btn-small btn-success" onclick="copyToClipboard('${skill.id}'); event.stopPropagation();">Copiar ID</button>
+                    <button class="btn btn-small btn-info" onclick="openWowhead('skill', ${skill.id}, '${skill.name.replace(/'/g, "\\'")}'); event.stopPropagation();">Wowhead</button>
                 </div>
             </div>
         `).join('');
@@ -388,7 +390,8 @@ async function loadSpells(page = 1) {
                 <div class="actions">
                     <button class="btn btn-small btn-primary" onclick="fillCommand('.learn ${spell.id}'); event.stopPropagation();">Aprender</button>
                     <button class="btn btn-small btn-success" onclick="fillCommand('.cast ${spell.id}'); event.stopPropagation();">Castear</button>
-                    <button class="btn btn-small btn-info" onclick="copyToClipboard('${spell.id}'); event.stopPropagation();">Copiar ID</button>
+                    <button class="btn btn-small btn-secondary" onclick="copyToClipboard('${spell.id}'); event.stopPropagation();">Copiar ID</button>
+                    <button class="btn btn-small btn-info" onclick="openWowhead('spell', ${spell.id}, '${spell.name.replace(/'/g, "\\'")}'); event.stopPropagation();">Wowhead</button>
                 </div>
             </div>
         `).join('');
@@ -443,6 +446,7 @@ async function loadReputations(page = 1) {
                 <div class="actions">
                     <button class="btn btn-small btn-primary" onclick="fillCommand('.modify reputation ${rep.id} 42999'); event.stopPropagation();">Exaltado</button>
                     <button class="btn btn-small btn-success" onclick="copyToClipboard('${rep.id}'); event.stopPropagation();">Copiar ID</button>
+                    <button class="btn btn-small btn-info" onclick="openWowhead('reputation', ${rep.id}, '${rep.name.replace(/'/g, "\\'")}'); event.stopPropagation();">Wowhead</button>
                 </div>
             </div>
         `).join('');
@@ -497,7 +501,8 @@ async function loadQuests(page = 1) {
                 <div class="actions">
                     <button class="btn btn-small btn-primary" onclick="fillCommand('.quest add ${quest.id}'); event.stopPropagation();">Agregar</button>
                     <button class="btn btn-small btn-success" onclick="fillCommand('.quest complete ${quest.id}'); event.stopPropagation();">Completar</button>
-                    <button class="btn btn-small btn-info" onclick="copyToClipboard('${quest.id}'); event.stopPropagation();">Copiar ID</button>
+                    <button class="btn btn-small btn-secondary" onclick="copyToClipboard('${quest.id}'); event.stopPropagation();">Copiar ID</button>
+                    <button class="btn btn-small btn-info" onclick="openWowhead('quest', ${quest.id}, '${quest.title.replace(/'/g, "\\'")}'); event.stopPropagation();">Wowhead</button>
                 </div>
             </div>
         `).join('');
@@ -577,6 +582,52 @@ async function loadServerInfo() {
         `).join('');
     } catch (error) {
         console.error('Error loading server info:', error);
+    }
+}
+
+// Wowhead Modal Functions
+let currentWowheadUrl = '';
+
+function openWowhead(type, id, name) {
+    const urls = {
+        'item': `https://classic.wowhead.com/item=${id}`,
+        'spell': `https://classic.wowhead.com/spell=${id}`,
+        'quest': `https://classic.wowhead.com/quest=${id}`,
+        'skill': `https://classic.wowhead.com/spell=${id}`, // Skills usan spell ID en Wowhead
+        'reputation': `https://classic.wowhead.com/faction=${id}`
+    };
+
+    const titles = {
+        'item': 'Item',
+        'spell': 'Hechizo',
+        'quest': 'Misión',
+        'skill': 'Skill',
+        'reputation': 'Facción'
+    };
+
+    currentWowheadUrl = urls[type];
+
+    if (!currentWowheadUrl) {
+        showNotification('Tipo de recurso no soportado');
+        return;
+    }
+
+    document.getElementById('wowhead-modal-title').textContent = `${titles[type]}: ${name}`;
+    document.getElementById('wowhead-iframe').src = currentWowheadUrl;
+    document.getElementById('wowhead-modal').classList.add('show');
+}
+
+function closeWowheadModal() {
+    document.getElementById('wowhead-modal').classList.remove('show');
+    // Limpiar iframe para evitar seguir cargando contenido
+    setTimeout(() => {
+        document.getElementById('wowhead-iframe').src = '';
+    }, 300);
+}
+
+function openWowheadInNewTab() {
+    if (currentWowheadUrl) {
+        window.open(currentWowheadUrl, '_blank');
     }
 }
 
