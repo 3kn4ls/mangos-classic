@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const pools = require('../database');
+const pools = require('../src/database');
 
 // GET /api/items/search - Search items
 router.get('/search', async (req, res) => {
