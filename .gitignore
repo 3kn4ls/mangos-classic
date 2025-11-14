@@ -40,6 +40,7 @@ autom4te.cache
 #
 *~
 *.bak
+*.backup
 *.orig
 *.patch
 callgrind.out.*

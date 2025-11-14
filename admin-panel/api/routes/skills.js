@@ -46,28 +46,48 @@ const CLASSIC_SKILLS = [
   { id: 673, name: 'Language: Gutterspeak', category: 'Language' }
 ];
 
-// GET /api/skills/search - Search skills
+// GET /api/skills/search - Search skills with pagination
 router.get('/search', async (req, res) => {
-  const { q } = req.query;
+  const { q, page = 1, limit = 50 } = req.query;
+  const pageNum = parseInt(page);
+  const limitNum = parseInt(limit);
+  const offset = (pageNum - 1) * limitNum;
 
   try {
-    let results = CLASSIC_SKILLS;
+    let results = [...CLASSIC_SKILLS];
 
-    if (q) {
+    // Filter if query provided
+    if (q && q.trim()) {
       // Check if query is a number (ID search) or text (name search)
       if (!isNaN(q)) {
         const skillId = parseInt(q);
-        results = CLASSIC_SKILLS.filter(skill => skill.id === skillId);
+        results = results.filter(skill => skill.id === skillId);
       } else {
         const searchTerm = q.toLowerCase();
-        results = CLASSIC_SKILLS.filter(skill =>
+        results = results.filter(skill =>
           skill.name.toLowerCase().includes(searchTerm) ||
           skill.category.toLowerCase().includes(searchTerm)
         );
       }
     }
 
-    res.json(results.slice(0, 50));
+    // Sort alphabetically by name
+    results.sort((a, b) => a.name.localeCompare(b.name));
+
+    // Pagination
+    const total = results.length;
+    const paginatedResults = results.slice(offset, offset + limitNum);
+
+    res.json({
+      data: paginatedResults,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total: total,
+        totalPages: Math.ceil(total / limitNum),
+        hasMore: offset + limitNum < total
+      }
+    });
   } catch (error) {
     console.error('Error searching skills:', error);
     res.status(500).json({ error: 'Failed to search skills' });
