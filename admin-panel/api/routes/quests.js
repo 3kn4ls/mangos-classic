@@ -2,11 +2,16 @@ const express = require('express');
 const router = express.Router();
 const pools = require('../src/database');
 
-// GET /api/quests/search - Search quests
+// GET /api/quests/search - Search quests with pagination
 router.get('/search', async (req, res) => {
-  const { q, minLevel, maxLevel } = req.query;
+  const { q, minLevel, maxLevel, page = 1, limit = 50 } = req.query;
+  const pageNum = parseInt(page);
+  const limitNum = parseInt(limit);
+  const offset = (pageNum - 1) * limitNum;
 
   try {
+    // Count total for pagination
+    let countQuery = 'SELECT COUNT(*) as total FROM quest_template WHERE 1=1';
     let query = `
       SELECT
         entry as id,
@@ -19,36 +24,69 @@ router.get('/search', async (req, res) => {
       WHERE 1=1
     `;
     const params = [];
+    const countParams = [];
 
-    if (q) {
+    if (q && q.trim()) {
       // Check if query is a number (ID search) or text (name search)
       if (!isNaN(q)) {
         query += ' AND entry = ?';
+        countQuery += ' AND entry = ?';
         params.push(parseInt(q));
+        countParams.push(parseInt(q));
       } else {
         query += ' AND Title LIKE ?';
-        params.push(`%${q}%`);
+        countQuery += ' AND Title LIKE ?';
+        const searchTerm = `%${q}%`;
+        params.push(searchTerm);
+        countParams.push(searchTerm);
       }
     }
 
     if (minLevel) {
       query += ' AND MinLevel >= ?';
-      params.push(parseInt(minLevel));
+      countQuery += ' AND MinLevel >= ?';
+      const minLvl = parseInt(minLevel);
+      params.push(minLvl);
+      countParams.push(minLvl);
     }
 
     if (maxLevel) {
       query += ' AND QuestLevel <= ?';
-      params.push(parseInt(maxLevel));
+      countQuery += ' AND QuestLevel <= ?';
+      const maxLvl = parseInt(maxLevel);
+      params.push(maxLvl);
+      countParams.push(maxLvl);
     }
 
-    query += ' ORDER BY Title LIMIT 100';
+    query += ' ORDER BY Title LIMIT ? OFFSET ?';
+    params.push(limitNum, offset);
 
+    const [[{ total }]] = await pools.world.query(countQuery, countParams);
     const [rows] = await pools.world.query(query, params);
-    res.json(rows);
+
+    res.json({
+      data: rows,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total: total,
+        totalPages: Math.ceil(total / limitNum),
+        hasMore: offset + limitNum < total
+      }
+    });
   } catch (error) {
     console.error('Error searching quests:', error);
-    // Return empty array if table doesn't exist or there's an error
-    res.json([]);
+    // Return empty result if table doesn't exist or there's an error
+    res.json({
+      data: [],
+      pagination: {
+        page: 1,
+        limit: limitNum,
+        total: 0,
+        totalPages: 0,
+        hasMore: false
+      }
+    });
   }
 });
 

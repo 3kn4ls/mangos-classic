@@ -41,28 +41,48 @@ const CLASSIC_FACTIONS = [
   { id: 1011, name: 'Lower City', team: 'Neutral' }
 ];
 
-// GET /api/reputations/search - Search factions
+// GET /api/reputations/search - Search factions with pagination
 router.get('/search', async (req, res) => {
-  const { q } = req.query;
+  const { q, page = 1, limit = 50 } = req.query;
+  const pageNum = parseInt(page);
+  const limitNum = parseInt(limit);
+  const offset = (pageNum - 1) * limitNum;
 
   try {
-    let results = CLASSIC_FACTIONS;
+    let results = [...CLASSIC_FACTIONS];
 
-    if (q) {
+    // Filter if query provided
+    if (q && q.trim()) {
       // Check if query is a number (ID search) or text (name search)
       if (!isNaN(q)) {
         const factionId = parseInt(q);
-        results = CLASSIC_FACTIONS.filter(faction => faction.id === factionId);
+        results = results.filter(faction => faction.id === factionId);
       } else {
         const searchTerm = q.toLowerCase();
-        results = CLASSIC_FACTIONS.filter(faction =>
+        results = results.filter(faction =>
           faction.name.toLowerCase().includes(searchTerm) ||
           faction.team.toLowerCase().includes(searchTerm)
         );
       }
     }
 
-    res.json(results.slice(0, 100));
+    // Sort alphabetically by name
+    results.sort((a, b) => a.name.localeCompare(b.name));
+
+    // Pagination
+    const total = results.length;
+    const paginatedResults = results.slice(offset, offset + limitNum);
+
+    res.json({
+      data: paginatedResults,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total: total,
+        totalPages: Math.ceil(total / limitNum),
+        hasMore: offset + limitNum < total
+      }
+    });
   } catch (error) {
     console.error('Error searching factions:', error);
     res.status(500).json({ error: 'Failed to search factions' });
