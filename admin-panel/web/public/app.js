@@ -64,14 +64,19 @@ function showPage(pageName) {
             loadCharacters();
             break;
         case 'items':
+            loadItems(1);
             break;
         case 'skills':
+            loadSkills(1);
             break;
         case 'spells':
+            loadSpells(1);
             break;
         case 'reputations':
+            loadReputations(1);
             break;
         case 'quests':
+            loadQuests(1);
             break;
         case 'commands':
             loadCommands();
@@ -198,26 +203,273 @@ function formatMoney(copper) {
     return `${gold}g ${silver}s ${copperLeft}c`;
 }
 
+// Utility functions for pagination and loading states
+function showLoading(containerId) {
+    document.getElementById(containerId).innerHTML = '<p style="text-align:center; color:#7f8c8d; padding: 40px;"><i class="fas fa-spinner fa-spin"></i> Cargando...</p>';
+}
+
+function showNoResults(containerId, message = 'No se encontraron resultados.') {
+    document.getElementById(containerId).innerHTML = `<p style="text-align:center; color:#7f8c8d; padding: 40px;">${message}</p>`;
+}
+
+function showError(containerId, message = 'Error al cargar datos.') {
+    document.getElementById(containerId).innerHTML = `<p style="text-align:center; color:#e74c3c; padding: 40px;">${message}</p>`;
+}
+
+function renderPagination(containerId, pagination, loadFunction) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const { page, totalPages, hasMore } = pagination;
+
+    let html = '<div class="pagination">';
+
+    // Previous button
+    if (page > 1) {
+        html += `<button class="btn btn-small" onclick="${loadFunction}(${page - 1})">Anterior</button>`;
+    } else {
+        html += `<button class="btn btn-small" disabled>Anterior</button>`;
+    }
+
+    // Page info
+    html += `<span style="margin: 0 15px;">Página ${page} de ${totalPages}</span>`;
+
+    // Next button
+    if (hasMore) {
+        html += `<button class="btn btn-small" onclick="${loadFunction}(${page + 1})">Siguiente</button>`;
+    } else {
+        html += `<button class="btn btn-small" disabled>Siguiente</button>`;
+    }
+
+    html += '</div>';
+    container.innerHTML = html;
+}
+
 // Items
-async function searchItems() {
+async function loadItems(page = 1) {
     const query = document.getElementById('item-search').value;
-    if (query.length < 3) return;
+    const url = query
+        ? `${API_URL}/items/search?q=${encodeURIComponent(query)}&page=${page}&limit=50`
+        : `${API_URL}/items/search?page=${page}&limit=50`;
+
+    showLoading('items-results');
 
     try {
-        const response = await fetch(`${API_URL}/items/search?q=${encodeURIComponent(query)}`);
-        const items = await response.json();
+        const response = await fetch(url);
+        const result = await response.json();
 
         const results = document.getElementById('items-results');
-        results.innerHTML = items.map(item => `
-            <div class="item-card">
+
+        if (!result.data || result.data.length === 0) {
+            showNoResults('items-results', query ? 'No se encontraron items.' : 'No hay items disponibles.');
+            return;
+        }
+
+        results.innerHTML = result.data.map(item => `
+            <div class="result-card">
+                <span class="card-id">ID: ${item.entry}</span>
                 <h4 class="quality-${item.Quality}">${item.name}</h4>
-                <p>ID: ${item.entry} | Item Level: ${item.ItemLevel} | Required Level: ${item.RequiredLevel}</p>
-                <button class="btn btn-small btn-primary" onclick="showGiveItemDialog(${item.entry}, '${item.name}')">Dar Item</button>
+                <p>Item Level: ${item.ItemLevel} | Required Level: ${item.RequiredLevel}</p>
+                <div class="actions">
+                    <button class="btn btn-small btn-primary" onclick="fillCommand('.additem ${item.entry}')">Dar Item</button>
+                    <button class="btn btn-small btn-success" onclick="copyToClipboard('${item.entry}')">Copiar ID</button>
+                </div>
             </div>
         `).join('');
+
+        renderPagination('items-pagination', result.pagination, 'loadItems');
     } catch (error) {
-        console.error('Error searching items:', error);
+        console.error('Error loading items:', error);
+        showError('items-results');
     }
+}
+
+let itemsSearchTimeout;
+async function searchItems() {
+    clearTimeout(itemsSearchTimeout);
+    itemsSearchTimeout = setTimeout(() => loadItems(1), 300);
+}
+
+// Skills
+async function loadSkills(page = 1) {
+    const query = document.getElementById('skill-search').value;
+    const url = query
+        ? `${API_URL}/skills/search?q=${encodeURIComponent(query)}&page=${page}&limit=50`
+        : `${API_URL}/skills/search?page=${page}&limit=50`;
+
+    showLoading('skills-results');
+
+    try {
+        const response = await fetch(url);
+        const result = await response.json();
+
+        const results = document.getElementById('skills-results');
+
+        if (!result.data || result.data.length === 0) {
+            showNoResults('skills-results', query ? 'No se encontraron skills.' : 'No hay skills disponibles.');
+            return;
+        }
+
+        results.innerHTML = result.data.map(skill => `
+            <div class="result-card" onclick="copyToClipboard('.learn ${skill.id}')">
+                <span class="card-id">ID: ${skill.id}</span>
+                <h4>${skill.name}</h4>
+                <p><strong>Categoría:</strong> ${skill.category || 'N/A'}</p>
+                <div class="actions">
+                    <button class="btn btn-small btn-primary" onclick="fillCommand('.learn ${skill.id}'); event.stopPropagation();">Aprender Skill</button>
+                    <button class="btn btn-small btn-success" onclick="copyToClipboard('${skill.id}'); event.stopPropagation();">Copiar ID</button>
+                </div>
+            </div>
+        `).join('');
+
+        renderPagination('skills-pagination', result.pagination, 'loadSkills');
+    } catch (error) {
+        console.error('Error loading skills:', error);
+        showError('skills-results');
+    }
+}
+
+let skillsSearchTimeout;
+async function searchSkills() {
+    clearTimeout(skillsSearchTimeout);
+    skillsSearchTimeout = setTimeout(() => loadSkills(1), 300);
+}
+
+// Spells
+async function loadSpells(page = 1) {
+    const query = document.getElementById('spell-search').value;
+    const url = query
+        ? `${API_URL}/spells/search?q=${encodeURIComponent(query)}&page=${page}&limit=50`
+        : `${API_URL}/spells/search?page=${page}&limit=50`;
+
+    showLoading('spells-results');
+
+    try {
+        const response = await fetch(url);
+        const result = await response.json();
+
+        const results = document.getElementById('spells-results');
+
+        if (!result.data || result.data.length === 0) {
+            showNoResults('spells-results', query ? 'No se encontraron hechizos.' : 'No hay hechizos disponibles.');
+            return;
+        }
+
+        results.innerHTML = result.data.map(spell => `
+            <div class="result-card" onclick="copyToClipboard('.learn ${spell.id}')">
+                <span class="card-id">ID: ${spell.id}</span>
+                <h4>${spell.name}</h4>
+                <p><strong>Rango:</strong> ${spell.rank || 'N/A'} | <strong>Nivel:</strong> ${spell.level || 0} | <strong>Clase:</strong> ${spell.class || 'N/A'}</p>
+                <div class="actions">
+                    <button class="btn btn-small btn-primary" onclick="fillCommand('.learn ${spell.id}'); event.stopPropagation();">Aprender</button>
+                    <button class="btn btn-small btn-success" onclick="fillCommand('.cast ${spell.id}'); event.stopPropagation();">Castear</button>
+                    <button class="btn btn-small btn-info" onclick="copyToClipboard('${spell.id}'); event.stopPropagation();">Copiar ID</button>
+                </div>
+            </div>
+        `).join('');
+
+        renderPagination('spells-pagination', result.pagination, 'loadSpells');
+    } catch (error) {
+        console.error('Error loading spells:', error);
+        showError('spells-results');
+    }
+}
+
+let spellsSearchTimeout;
+async function searchSpells() {
+    clearTimeout(spellsSearchTimeout);
+    spellsSearchTimeout = setTimeout(() => loadSpells(1), 300);
+}
+
+// Reputations
+async function loadReputations(page = 1) {
+    const query = document.getElementById('reputation-search').value;
+    const url = query
+        ? `${API_URL}/reputations/search?q=${encodeURIComponent(query)}&page=${page}&limit=50`
+        : `${API_URL}/reputations/search?page=${page}&limit=50`;
+
+    showLoading('reputations-results');
+
+    try {
+        const response = await fetch(url);
+        const result = await response.json();
+
+        const results = document.getElementById('reputations-results');
+
+        if (!result.data || result.data.length === 0) {
+            showNoResults('reputations-results', query ? 'No se encontraron facciones.' : 'No hay facciones disponibles.');
+            return;
+        }
+
+        results.innerHTML = result.data.map(rep => `
+            <div class="result-card" onclick="copyToClipboard('.modify reputation ${rep.id} 42999')">
+                <span class="card-id">ID: ${rep.id}</span>
+                <h4>${rep.name}</h4>
+                <p><strong>Facción:</strong> ${rep.team || 'Neutral'}</p>
+                <div class="actions">
+                    <button class="btn btn-small btn-primary" onclick="fillCommand('.modify reputation ${rep.id} 42999'); event.stopPropagation();">Exaltado</button>
+                    <button class="btn btn-small btn-success" onclick="copyToClipboard('${rep.id}'); event.stopPropagation();">Copiar ID</button>
+                </div>
+            </div>
+        `).join('');
+
+        renderPagination('reputations-pagination', result.pagination, 'loadReputations');
+    } catch (error) {
+        console.error('Error loading reputations:', error);
+        showError('reputations-results');
+    }
+}
+
+let reputationsSearchTimeout;
+async function searchReputations() {
+    clearTimeout(reputationsSearchTimeout);
+    reputationsSearchTimeout = setTimeout(() => loadReputations(1), 300);
+}
+
+// Quests
+async function loadQuests(page = 1) {
+    const query = document.getElementById('quest-search').value;
+    const url = query
+        ? `${API_URL}/quests/search?q=${encodeURIComponent(query)}&page=${page}&limit=50`
+        : `${API_URL}/quests/search?page=${page}&limit=50`;
+
+    showLoading('quests-results');
+
+    try {
+        const response = await fetch(url);
+        const result = await response.json();
+
+        const results = document.getElementById('quests-results');
+
+        if (!result.data || result.data.length === 0) {
+            showNoResults('quests-results', query ? 'No se encontraron misiones.' : 'No hay misiones disponibles.');
+            return;
+        }
+
+        results.innerHTML = result.data.map(quest => `
+            <div class="result-card" onclick="copyToClipboard('.quest add ${quest.id}')">
+                <span class="card-id">ID: ${quest.id}</span>
+                <h4>${quest.title}</h4>
+                <p><strong>Nivel:</strong> ${quest.level || 0} | <strong>Min Level:</strong> ${quest.minLevel || 0}</p>
+                <div class="actions">
+                    <button class="btn btn-small btn-primary" onclick="fillCommand('.quest add ${quest.id}'); event.stopPropagation();">Agregar</button>
+                    <button class="btn btn-small btn-success" onclick="fillCommand('.quest complete ${quest.id}'); event.stopPropagation();">Completar</button>
+                    <button class="btn btn-small btn-info" onclick="copyToClipboard('${quest.id}'); event.stopPropagation();">Copiar ID</button>
+                </div>
+            </div>
+        `).join('');
+
+        renderPagination('quests-pagination', result.pagination, 'loadQuests');
+    } catch (error) {
+        console.error('Error loading quests:', error);
+        showError('quests-results');
+    }
+}
+
+let questsSearchTimeout;
+async function searchQuests() {
+    clearTimeout(questsSearchTimeout);
+    questsSearchTimeout = setTimeout(() => loadQuests(1), 300);
 }
 
 // Commands
@@ -281,169 +533,6 @@ async function loadServerInfo() {
     } catch (error) {
         console.error('Error loading server info:', error);
     }
-}
-
-// Skills Search
-let skillsSearchTimeout;
-async function searchSkills() {
-    clearTimeout(skillsSearchTimeout);
-    const query = document.getElementById('skill-search').value;
-
-    if (query.length < 2) {
-        document.getElementById('skills-results').innerHTML = '<p style="text-align:center; color:#7f8c8d;">Escribe al menos 2 caracteres para buscar...</p>';
-        return;
-    }
-
-    skillsSearchTimeout = setTimeout(async () => {
-        try {
-            const response = await fetch(`${API_URL}/skills/search?q=${encodeURIComponent(query)}`);
-            const skills = await response.json();
-
-            const results = document.getElementById('skills-results');
-            if (skills.length === 0) {
-                results.innerHTML = '<p style="text-align:center; color:#7f8c8d;">No se encontraron skills.</p>';
-                return;
-            }
-
-            results.innerHTML = skills.map(skill => `
-                <div class="result-card" onclick="copyToClipboard('.learn ${skill.id}')">
-                    <span class="card-id">ID: ${skill.id}</span>
-                    <h4>${skill.name}</h4>
-                    <p><strong>Categoría:</strong> ${skill.category || 'N/A'}</p>
-                    <div class="actions">
-                        <button class="btn btn-small btn-primary" onclick="fillCommand('.learn ${skill.id}'); event.stopPropagation();">Aprender Skill</button>
-                        <button class="btn btn-small btn-success" onclick="copyToClipboard('${skill.id}'); event.stopPropagation();">Copiar ID</button>
-                    </div>
-                </div>
-            `).join('');
-        } catch (error) {
-            console.error('Error searching skills:', error);
-            document.getElementById('skills-results').innerHTML = '<p style="text-align:center; color:#e74c3c;">Error al buscar skills.</p>';
-        }
-    }, 300);
-}
-
-// Spells Search
-let spellsSearchTimeout;
-async function searchSpells() {
-    clearTimeout(spellsSearchTimeout);
-    const query = document.getElementById('spell-search').value;
-
-    if (query.length < 2) {
-        document.getElementById('spells-results').innerHTML = '<p style="text-align:center; color:#7f8c8d;">Escribe al menos 2 caracteres para buscar...</p>';
-        return;
-    }
-
-    spellsSearchTimeout = setTimeout(async () => {
-        try {
-            const response = await fetch(`${API_URL}/spells/search?q=${encodeURIComponent(query)}`);
-            const spells = await response.json();
-
-            const results = document.getElementById('spells-results');
-            if (spells.length === 0) {
-                results.innerHTML = '<p style="text-align:center; color:#7f8c8d;">No se encontraron hechizos.</p>';
-                return;
-            }
-
-            results.innerHTML = spells.map(spell => `
-                <div class="result-card" onclick="copyToClipboard('.learn ${spell.id}')">
-                    <span class="card-id">ID: ${spell.id}</span>
-                    <h4>${spell.name}</h4>
-                    <p><strong>Rango:</strong> ${spell.rank || 'N/A'}</p>
-                    <p><strong>Nivel:</strong> ${spell.level || 0}</p>
-                    <div class="actions">
-                        <button class="btn btn-small btn-primary" onclick="fillCommand('.learn ${spell.id}'); event.stopPropagation();">Aprender</button>
-                        <button class="btn btn-small btn-success" onclick="fillCommand('.cast ${spell.id}'); event.stopPropagation();">Castear</button>
-                        <button class="btn btn-small btn-success" onclick="copyToClipboard('${spell.id}'); event.stopPropagation();">Copiar ID</button>
-                    </div>
-                </div>
-            `).join('');
-        } catch (error) {
-            console.error('Error searching spells:', error);
-            document.getElementById('spells-results').innerHTML = '<p style="text-align:center; color:#e74c3c;">Error al buscar hechizos.</p>';
-        }
-    }, 300);
-}
-
-// Reputations Search
-let reputationsSearchTimeout;
-async function searchReputations() {
-    clearTimeout(reputationsSearchTimeout);
-    const query = document.getElementById('reputation-search').value;
-
-    if (query.length < 2) {
-        document.getElementById('reputations-results').innerHTML = '<p style="text-align:center; color:#7f8c8d;">Escribe al menos 2 caracteres para buscar...</p>';
-        return;
-    }
-
-    reputationsSearchTimeout = setTimeout(async () => {
-        try {
-            const response = await fetch(`${API_URL}/reputations/search?q=${encodeURIComponent(query)}`);
-            const reputations = await response.json();
-
-            const results = document.getElementById('reputations-results');
-            if (reputations.length === 0) {
-                results.innerHTML = '<p style="text-align:center; color:#7f8c8d;">No se encontraron facciones.</p>';
-                return;
-            }
-
-            results.innerHTML = reputations.map(rep => `
-                <div class="result-card" onclick="copyToClipboard('.modify reputation ${rep.id} 42999')">
-                    <span class="card-id">ID: ${rep.id}</span>
-                    <h4>${rep.name}</h4>
-                    <p><strong>Facción:</strong> ${rep.team || 'Neutral'}</p>
-                    <div class="actions">
-                        <button class="btn btn-small btn-primary" onclick="fillCommand('.modify reputation ${rep.id} 42999'); event.stopPropagation();">Exaltado</button>
-                        <button class="btn btn-small btn-success" onclick="copyToClipboard('${rep.id}'); event.stopPropagation();">Copiar ID</button>
-                    </div>
-                </div>
-            `).join('');
-        } catch (error) {
-            console.error('Error searching reputations:', error);
-            document.getElementById('reputations-results').innerHTML = '<p style="text-align:center; color:#e74c3c;">Error al buscar facciones.</p>';
-        }
-    }, 300);
-}
-
-// Quests Search
-let questsSearchTimeout;
-async function searchQuests() {
-    clearTimeout(questsSearchTimeout);
-    const query = document.getElementById('quest-search').value;
-
-    if (query.length < 2) {
-        document.getElementById('quests-results').innerHTML = '<p style="text-align:center; color:#7f8c8d;">Escribe al menos 2 caracteres para buscar...</p>';
-        return;
-    }
-
-    questsSearchTimeout = setTimeout(async () => {
-        try {
-            const response = await fetch(`${API_URL}/quests/search?q=${encodeURIComponent(query)}`);
-            const quests = await response.json();
-
-            const results = document.getElementById('quests-results');
-            if (quests.length === 0) {
-                results.innerHTML = '<p style="text-align:center; color:#7f8c8d;">No se encontraron misiones.</p>';
-                return;
-            }
-
-            results.innerHTML = quests.map(quest => `
-                <div class="result-card" onclick="copyToClipboard('.quest add ${quest.id}')">
-                    <span class="card-id">ID: ${quest.id}</span>
-                    <h4>${quest.title}</h4>
-                    <p><strong>Nivel:</strong> ${quest.level || 0} | <strong>Min Level:</strong> ${quest.minLevel || 0}</p>
-                    <div class="actions">
-                        <button class="btn btn-small btn-primary" onclick="fillCommand('.quest add ${quest.id}'); event.stopPropagation();">Agregar</button>
-                        <button class="btn btn-small btn-success" onclick="fillCommand('.quest complete ${quest.id}'); event.stopPropagation();">Completar</button>
-                        <button class="btn btn-small btn-success" onclick="copyToClipboard('${quest.id}'); event.stopPropagation();">Copiar ID</button>
-                    </div>
-                </div>
-            `).join('');
-        } catch (error) {
-            console.error('Error searching quests:', error);
-            document.getElementById('quests-results').innerHTML = '<p style="text-align:center; color:#e74c3c;">Error al buscar misiones.</p>';
-        }
-    }, 300);
 }
 
 // Copy to clipboard utility

@@ -614,12 +614,48 @@ h2 {
     }
 }
 
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    padding: 15px;
+    gap: 10px;
+}
+
+.pagination .btn {
+    min-width: 90px;
+}
+
+.pagination .btn[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination span {
+    color: #2c3e50;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+/* Additional button variant */
+.btn-info {
+    background: #17a2b8;
+    color: white;
+}
+
+.btn-info:hover {
+    background: #138496;
+}
+
 /* Print styles */
 @media print {
     .sidebar,
     .mobile-header,
     .btn,
-    .sidebar-overlay {
+    .sidebar-overlay,
+    .pagination {
         display: none !important;
     }
 
