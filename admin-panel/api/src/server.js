@@ -4,14 +4,18 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
-const accountRoutes = require('./routes/accounts');
-const characterRoutes = require('./routes/characters');
-const itemRoutes = require('./routes/items');
-const serverRoutes = require('./routes/server');
-const commandRoutes = require('./routes/commands');
+const accountRoutes = require('../routes/accounts');
+const characterRoutes = require('../routes/characters');
+const itemRoutes = require('../routes/items');
+const serverRoutes = require('../routes/server');
+const commandRoutes = require('../routes/commands');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Trust proxy - needed when behind reverse proxy (Traefik/nginx)
+// 1 means trust the first proxy (Traefik) in front of this app
+app.set('trust proxy', 1);
 
 // Middleware
 app.use(helmet());
@@ -23,7 +27,11 @@ app.use(express.json());
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  max: 100, // limit each IP to 100 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Skip rate limiting for internal health checks
+  skip: (req) => req.path === '/health'
 });
 app.use('/api/', limiter);
 

@@ -1,0 +1,52 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: admin-panel-ingressroute
+  namespace: mangos-classic
+spec:
+  entryPoints:
+    - web
+  routes:
+    # Ruta para la API - debe ir primero por ser más específica
+    - match: PathPrefix(`/cmangos/api`)
+      kind: Rule
+      services:
+        - name: admin-api-service
+          port: 3000
+      middlewares:
+        - name: strip-cmangos-api
+    # Ruta para el frontend
+    - match: PathPrefix(`/cmangos`)
+      kind: Rule
+      services:
+        - name: admin-web-service
+          port: 80
+      middlewares:
+        - name: strip-cmangos
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: admin-panel-ingressroute-https
+  namespace: mangos-classic
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    # Ruta para la API - debe ir primero por ser más específica
+    - match: PathPrefix(`/cmangos/api`)
+      kind: Rule
+      services:
+        - name: admin-api-service
+          port: 3000
+      middlewares:
+        - name: strip-cmangos-api
+    # Ruta para el frontend
+    - match: PathPrefix(`/cmangos`)
+      kind: Rule
+      services:
+        - name: admin-web-service
+          port: 80
+      middlewares:
+        - name: strip-cmangos
+  tls: {}

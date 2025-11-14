@@ -1,7 +1,8 @@
 // API Configuration
+// Use relative path to work with any base path (e.g., /cmangos)
 const API_URL = window.location.hostname === 'localhost'
     ? 'http://localhost:3000/api'
-    : '/api';
+    : './api';
 
 // Navigation
 document.querySelectorAll('.menu a').forEach(link => {

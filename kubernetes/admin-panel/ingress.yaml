@@ -5,22 +5,21 @@ metadata:
   name: admin-panel-ingress
   namespace: mangos-classic
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    traefik.ingress.kubernetes.io/router.middlewares: mangos-classic-strip-cmangos@kubernetescrd
     cert-manager.io/cluster-issuer: "letsencrypt-prod"  # Si usas cert-manager
 spec:
   ingressClassName: traefik  # k3s usa Traefik por defecto
   rules:
-  - host: admin.mangos.local  # Cambiar por tu dominio
-    http:
+  - http:
       paths:
-      - path: /
+      - path: /cmangos
         pathType: Prefix
         backend:
           service:
             name: admin-web-service
             port:
               number: 80
-      - path: /api
+      - path: /cmangos/api
         pathType: Prefix
         backend:
           service:
