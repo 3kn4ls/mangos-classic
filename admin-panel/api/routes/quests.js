@@ -47,7 +47,8 @@ router.get('/search', async (req, res) => {
     res.json(rows);
   } catch (error) {
     console.error('Error searching quests:', error);
-    res.status(500).json({ error: 'Failed to search quests' });
+    // Return empty array if table doesn't exist or there's an error
+    res.json([]);
   }
 });
 

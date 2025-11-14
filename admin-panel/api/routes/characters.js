@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const pools = require('../database');
+const pools = require('../src/database');
 
 // GET /api/characters - List all characters
 router.get('/', async (req, res) => {

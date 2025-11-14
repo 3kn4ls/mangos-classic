@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const pools = require('../database');
+const pools = require('../src/database');
 
 // POST /api/commands/execute - Execute GM command
 router.post('/execute', async (req, res) => {

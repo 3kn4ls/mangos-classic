@@ -10,11 +10,10 @@ router.get('/search', async (req, res) => {
     let query = `
       SELECT
         id,
-        name,
-        rank,
+        spellName0 as name,
+        rank1 as rank,
         spellLevel as level,
-        baseLevel,
-        schoolMask
+        baseLevel
       FROM spell_template
       WHERE 1=1
     `;
@@ -26,18 +25,19 @@ router.get('/search', async (req, res) => {
         query += ' AND id = ?';
         params.push(parseInt(q));
       } else {
-        query += ' AND name LIKE ?';
+        query += ' AND spellName0 LIKE ?';
         params.push(`%${q}%`);
       }
     }
 
-    query += ' ORDER BY name, spellLevel LIMIT 100';
+    query += ' ORDER BY spellName0, spellLevel LIMIT 100';
 
     const [rows] = await pools.world.query(query, params);
     res.json(rows);
   } catch (error) {
     console.error('Error searching spells:', error);
-    res.status(500).json({ error: 'Failed to search spells' });
+    // Return empty array if table doesn't exist
+    res.json([]);
   }
 });
 

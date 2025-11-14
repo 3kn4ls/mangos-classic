@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
-const pools = require('../database');
+const pools = require('../src/database');
 
 // Helper function to generate WoW password hash
 function generatePasswordHash(username, password) {
