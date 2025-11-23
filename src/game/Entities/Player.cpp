@@ -6283,8 +6283,15 @@ int32 Player::CalculateReputationGain(ReputationSource source, int32 rep, int32 
 
     uint32 currentLevel = GetLevel();
 
-    // Level zero seems to be treated as always equal to players current level in IsTrivialLevelDifference therefore I have skipped level difference penalty computations for that value
-    if (creatureOrQuestLevel > 0)
+    if (source == REPUTATION_SOURCE_KILL)
+    {
+        if (MaNGOS::XP::IsTrivialLevelDifference(currentLevel, creatureOrQuestLevel))
+        {
+            const uint32 greenRange = MaNGOS::XP::GetQuestGreenRange(currentLevel);
+            percent *= std::max(minRate, (1.0f - (0.2f * (currentLevel - greenRange - creatureOrQuestLevel))));
+        }
+    }
+    else if (source == REPUTATION_SOURCE_QUEST)
     {
         if (source == REPUTATION_SOURCE_KILL)
         {
