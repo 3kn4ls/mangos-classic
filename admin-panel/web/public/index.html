@@ -245,6 +245,21 @@
         </div>
     </div>
 
+    <!-- Wowhead Modal -->
+    <div id="wowhead-modal" class="modal">
+        <div class="modal-content modal-large">
+            <span class="close" onclick="closeWowheadModal()">&times;</span>
+            <h2 id="wowhead-modal-title">Información</h2>
+            <div class="iframe-container">
+                <iframe id="wowhead-iframe" src="" frameborder="0" allowfullscreen></iframe>
+            </div>
+            <div style="text-align: center; margin-top: 15px;">
+                <button class="btn btn-primary" onclick="openWowheadInNewTab()">Abrir en Nueva Pestaña</button>
+                <button class="btn btn-secondary" onclick="closeWowheadModal()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html>

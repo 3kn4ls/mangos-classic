@@ -260,7 +260,14 @@ async function loadItems(page = 1) {
 
         const results = document.getElementById('items-results');
 
-        if (!result.data || result.data.length === 0) {
+        // Validate response structure
+        if (!result || typeof result !== 'object') {
+            showError('items-results', 'Respuesta inválida del servidor.');
+            return;
+        }
+
+        // Check if data exists and is an array
+        if (!result.data || !Array.isArray(result.data) || result.data.length === 0) {
             showNoResults('items-results', query ? 'No se encontraron items.' : 'No hay items disponibles.');
             return;
         }
@@ -273,11 +280,14 @@ async function loadItems(page = 1) {
                 <div class="actions">
                     <button class="btn btn-small btn-primary" onclick="fillCommand('.additem ${item.entry}')">Dar Item</button>
                     <button class="btn btn-small btn-success" onclick="copyToClipboard('${item.entry}')">Copiar ID</button>
+                    <button class="btn btn-small btn-info" onclick="openWowhead('item', ${item.entry}, '${item.name.replace(/'/g, "\\'")}'); event.stopPropagation();">Wowhead</button>
                 </div>
             </div>
         `).join('');
 
-        renderPagination('items-pagination', result.pagination, 'loadItems');
+        if (result.pagination) {
+            renderPagination('items-pagination', result.pagination, 'loadItems');
+        }
     } catch (error) {
         console.error('Error loading items:', error);
         showError('items-results');
@@ -305,7 +315,14 @@ async function loadSkills(page = 1) {
 
         const results = document.getElementById('skills-results');
 
-        if (!result.data || result.data.length === 0) {
+        // Validate response structure
+        if (!result || typeof result !== 'object') {
+            showError('skills-results', 'Respuesta inválida del servidor.');
+            return;
+        }
+
+        // Check if data exists and is an array
+        if (!result.data || !Array.isArray(result.data) || result.data.length === 0) {
             showNoResults('skills-results', query ? 'No se encontraron skills.' : 'No hay skills disponibles.');
             return;
         }
@@ -318,11 +335,14 @@ async function loadSkills(page = 1) {
                 <div class="actions">
                     <button class="btn btn-small btn-primary" onclick="fillCommand('.learn ${skill.id}'); event.stopPropagation();">Aprender Skill</button>
                     <button class="btn btn-small btn-success" onclick="copyToClipboard('${skill.id}'); event.stopPropagation();">Copiar ID</button>
+                    <button class="btn btn-small btn-info" onclick="openWowhead('skill', ${skill.id}, '${skill.name.replace(/'/g, "\\'")}'); event.stopPropagation();">Wowhead</button>
                 </div>
             </div>
         `).join('');
 
-        renderPagination('skills-pagination', result.pagination, 'loadSkills');
+        if (result.pagination) {
+            renderPagination('skills-pagination', result.pagination, 'loadSkills');
+        }
     } catch (error) {
         console.error('Error loading skills:', error);
         showError('skills-results');
@@ -350,7 +370,14 @@ async function loadSpells(page = 1) {
 
         const results = document.getElementById('spells-results');
 
-        if (!result.data || result.data.length === 0) {
+        // Validate response structure
+        if (!result || typeof result !== 'object') {
+            showError('spells-results', 'Respuesta inválida del servidor.');
+            return;
+        }
+
+        // Check if data exists and is an array
+        if (!result.data || !Array.isArray(result.data) || result.data.length === 0) {
             showNoResults('spells-results', query ? 'No se encontraron hechizos.' : 'No hay hechizos disponibles.');
             return;
         }
@@ -363,12 +390,15 @@ async function loadSpells(page = 1) {
                 <div class="actions">
                     <button class="btn btn-small btn-primary" onclick="fillCommand('.learn ${spell.id}'); event.stopPropagation();">Aprender</button>
                     <button class="btn btn-small btn-success" onclick="fillCommand('.cast ${spell.id}'); event.stopPropagation();">Castear</button>
-                    <button class="btn btn-small btn-info" onclick="copyToClipboard('${spell.id}'); event.stopPropagation();">Copiar ID</button>
+                    <button class="btn btn-small btn-secondary" onclick="copyToClipboard('${spell.id}'); event.stopPropagation();">Copiar ID</button>
+                    <button class="btn btn-small btn-info" onclick="openWowhead('spell', ${spell.id}, '${spell.name.replace(/'/g, "\\'")}'); event.stopPropagation();">Wowhead</button>
                 </div>
             </div>
         `).join('');
 
-        renderPagination('spells-pagination', result.pagination, 'loadSpells');
+        if (result.pagination) {
+            renderPagination('spells-pagination', result.pagination, 'loadSpells');
+        }
     } catch (error) {
         console.error('Error loading spells:', error);
         showError('spells-results');
@@ -396,7 +426,14 @@ async function loadReputations(page = 1) {
 
         const results = document.getElementById('reputations-results');
 
-        if (!result.data || result.data.length === 0) {
+        // Validate response structure
+        if (!result || typeof result !== 'object') {
+            showError('reputations-results', 'Respuesta inválida del servidor.');
+            return;
+        }
+
+        // Check if data exists and is an array
+        if (!result.data || !Array.isArray(result.data) || result.data.length === 0) {
             showNoResults('reputations-results', query ? 'No se encontraron facciones.' : 'No hay facciones disponibles.');
             return;
         }
@@ -409,11 +446,14 @@ async function loadReputations(page = 1) {
                 <div class="actions">
                     <button class="btn btn-small btn-primary" onclick="fillCommand('.modify reputation ${rep.id} 42999'); event.stopPropagation();">Exaltado</button>
                     <button class="btn btn-small btn-success" onclick="copyToClipboard('${rep.id}'); event.stopPropagation();">Copiar ID</button>
+                    <button class="btn btn-small btn-info" onclick="openWowhead('reputation', ${rep.id}, '${rep.name.replace(/'/g, "\\'")}'); event.stopPropagation();">Wowhead</button>
                 </div>
             </div>
         `).join('');
 
-        renderPagination('reputations-pagination', result.pagination, 'loadReputations');
+        if (result.pagination) {
+            renderPagination('reputations-pagination', result.pagination, 'loadReputations');
+        }
     } catch (error) {
         console.error('Error loading reputations:', error);
         showError('reputations-results');
@@ -441,7 +481,14 @@ async function loadQuests(page = 1) {
 
         const results = document.getElementById('quests-results');
 
-        if (!result.data || result.data.length === 0) {
+        // Validate response structure
+        if (!result || typeof result !== 'object') {
+            showError('quests-results', 'Respuesta inválida del servidor.');
+            return;
+        }
+
+        // Check if data exists and is an array
+        if (!result.data || !Array.isArray(result.data) || result.data.length === 0) {
             showNoResults('quests-results', query ? 'No se encontraron misiones.' : 'No hay misiones disponibles.');
             return;
         }
@@ -454,12 +501,15 @@ async function loadQuests(page = 1) {
                 <div class="actions">
                     <button class="btn btn-small btn-primary" onclick="fillCommand('.quest add ${quest.id}'); event.stopPropagation();">Agregar</button>
                     <button class="btn btn-small btn-success" onclick="fillCommand('.quest complete ${quest.id}'); event.stopPropagation();">Completar</button>
-                    <button class="btn btn-small btn-info" onclick="copyToClipboard('${quest.id}'); event.stopPropagation();">Copiar ID</button>
+                    <button class="btn btn-small btn-secondary" onclick="copyToClipboard('${quest.id}'); event.stopPropagation();">Copiar ID</button>
+                    <button class="btn btn-small btn-info" onclick="openWowhead('quest', ${quest.id}, '${quest.title.replace(/'/g, "\\'")}'); event.stopPropagation();">Wowhead</button>
                 </div>
             </div>
         `).join('');
 
-        renderPagination('quests-pagination', result.pagination, 'loadQuests');
+        if (result.pagination) {
+            renderPagination('quests-pagination', result.pagination, 'loadQuests');
+        }
     } catch (error) {
         console.error('Error loading quests:', error);
         showError('quests-results');
@@ -532,6 +582,52 @@ async function loadServerInfo() {
         `).join('');
     } catch (error) {
         console.error('Error loading server info:', error);
+    }
+}
+
+// Wowhead Modal Functions
+let currentWowheadUrl = '';
+
+function openWowhead(type, id, name) {
+    const urls = {
+        'item': `https://classic.wowhead.com/item=${id}`,
+        'spell': `https://classic.wowhead.com/spell=${id}`,
+        'quest': `https://classic.wowhead.com/quest=${id}`,
+        'skill': `https://classic.wowhead.com/spell=${id}`, // Skills usan spell ID en Wowhead
+        'reputation': `https://classic.wowhead.com/faction=${id}`
+    };
+
+    const titles = {
+        'item': 'Item',
+        'spell': 'Hechizo',
+        'quest': 'Misión',
+        'skill': 'Skill',
+        'reputation': 'Facción'
+    };
+
+    currentWowheadUrl = urls[type];
+
+    if (!currentWowheadUrl) {
+        showNotification('Tipo de recurso no soportado');
+        return;
+    }
+
+    document.getElementById('wowhead-modal-title').textContent = `${titles[type]}: ${name}`;
+    document.getElementById('wowhead-iframe').src = currentWowheadUrl;
+    document.getElementById('wowhead-modal').classList.add('show');
+}
+
+function closeWowheadModal() {
+    document.getElementById('wowhead-modal').classList.remove('show');
+    // Limpiar iframe para evitar seguir cargando contenido
+    setTimeout(() => {
+        document.getElementById('wowhead-iframe').src = '';
+    }, 300);
+}
+
+function openWowheadInNewTab() {
+    if (currentWowheadUrl) {
+        window.open(currentWowheadUrl, '_blank');
     }
 }
 
