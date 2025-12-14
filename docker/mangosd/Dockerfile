@@ -1,4 +1,6 @@
 # Imagen para el servidor de juego (mangosd)
+FROM mangos-classic/builder:latest AS builder
+
 FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -22,11 +24,19 @@ RUN useradd -m -u 1000 mangos
 RUN mkdir -p /mangos/bin /mangos/etc /mangos/data /mangos/logs && \
     chown -R mangos:mangos /mangos
 
+# Copiar binarios desde builder
+COPY --from=builder --chown=mangos:mangos /mangos/bin/mangosd /mangos/bin/
+
+# Create entrypoint script
+RUN echo '#!/bin/sh\ntail -f /dev/null | /mangos/bin/mangosd -c /mangos/etc/mangosd.conf' > /mangos/bin/entrypoint.sh && \
+    chmod +x /mangos/bin/entrypoint.sh && \
+    chown mangos:mangos /mangos/bin/entrypoint.sh
+
 WORKDIR /mangos
 
 USER mangos
 
 EXPOSE 8085
 
-# Script de entrada se proporcionará
-CMD ["/mangos/bin/mangosd", "-c", "/mangos/etc/mangosd.conf"]
+# Run with stdin redirected to prevent shutdown on stdin close
+CMD ["/mangos/bin/entrypoint.sh"]

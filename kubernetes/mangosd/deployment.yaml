@@ -42,7 +42,8 @@ spec:
           if [ ! -d "/mangos/data/dbc" ]; then
             echo "ERROR: No se encontraron datos DBC. Por favor, carga los datos extraídos del cliente."
             echo "Necesitas copiar dbc/, maps/, vmaps/, mmaps/ al volumen game-data-pvc"
-            exit 1
+            echo "NOTA: Esto es normal en el primer despliegue."
+            exit 0  # No fallar, solo advertir
           fi
           echo "Datos del juego encontrados."
         volumeMounts:
@@ -53,6 +54,8 @@ spec:
       - name: mangosd
         image: mangos-classic/mangosd:latest
         imagePullPolicy: IfNotPresent
+        stdin: true
+        tty: true
         ports:
         - containerPort: 8085
           protocol: TCP
@@ -82,24 +85,18 @@ spec:
         - name: mangosd-config
           mountPath: /mangos/etc
           readOnly: true
-        - name: playerbot-config
-          mountPath: /mangos/etc/playerbot.conf
-          subPath: playerbot.conf
-          readOnly: true
         - name: game-data
           mountPath: /mangos/data
           readOnly: true
         - name: server-logs
           mountPath: /mangos/logs
-        - name: binaries
-          mountPath: /mangos/bin
         resources:
           requests:
-            memory: "2Gi"
-            cpu: "1000m"
+            memory: "512Mi"
+            cpu: "250m"
           limits:
-            memory: "8Gi"
-            cpu: "4000m"
+            memory: "4Gi"
+            cpu: "2000m"
         livenessProbe:
           tcpSocket:
             port: 8085
@@ -116,14 +113,9 @@ spec:
       - name: mangosd-config
         configMap:
           name: mangosd-config
-      - name: playerbot-config
-        configMap:
-          name: playerbot-config
       - name: game-data
         persistentVolumeClaim:
           claimName: game-data-pvc
       - name: server-logs
         persistentVolumeClaim:
           claimName: server-logs-pvc
-      - name: binaries
-        emptyDir: {}

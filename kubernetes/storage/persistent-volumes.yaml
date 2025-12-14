@@ -20,7 +20,7 @@ metadata:
     app: mangosd
 spec:
   accessModes:
-    - ReadWriteMany  # Compartido entre pods de mangosd
+    - ReadWriteOnce  # local-path solo soporta RWO
   resources:
     requests:
       storage: 10Gi  # Para dbc, maps, vmaps, mmaps (~5GB)
@@ -33,7 +33,7 @@ metadata:
   namespace: mangos-classic
 spec:
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce  # local-path solo soporta RWO
   resources:
     requests:
       storage: 5Gi

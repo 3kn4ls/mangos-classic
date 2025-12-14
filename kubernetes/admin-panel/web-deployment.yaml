@@ -59,5 +59,5 @@ spec:
     targetPort: 80
     protocol: TCP
     name: http
-    nodePort: 30080  # Accesible externamente
+    nodePort: 30081  # Accesible externamente
   type: NodePort

@@ -18,6 +18,7 @@ data:
     # Configuración del servidor
     BindIP = "0.0.0.0"
     WorldServerPort = 8085
+    RealmID = 1
 
     # DataDir - donde están los archivos dbc, maps, vmaps, mmaps
     DataDir = "/mangos/data"

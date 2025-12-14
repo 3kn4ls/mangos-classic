@@ -1,4 +1,6 @@
 # Imagen para el servidor de autenticación (realmd)
+FROM mangos-classic/builder:latest AS builder
+
 FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -19,10 +21,10 @@ RUN useradd -m -u 1000 mangos
 RUN mkdir -p /mangos/bin /mangos/etc /mangos/logs && \
     chown -R mangos:mangos /mangos
 
-WORKDIR /mangos
+# Copiar binarios desde builder
+COPY --from=builder --chown=mangos:mangos /mangos/bin/realmd /mangos/bin/
 
-# Los binarios se copiarán desde un volumen compartido o se construirán
-# Este Dockerfile se puede usar como base, los binarios se agregan en el deploy
+WORKDIR /mangos
 
 USER mangos
 

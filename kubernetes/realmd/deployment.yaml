@@ -36,6 +36,7 @@ spec:
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 3724
+          hostPort: 3724
           protocol: TCP
           name: auth
         env:
@@ -50,8 +51,6 @@ spec:
           readOnly: true
         - name: server-logs
           mountPath: /mangos/logs
-        - name: binaries
-          mountPath: /mangos/bin
         resources:
           requests:
             memory: "256Mi"
@@ -76,5 +75,3 @@ spec:
       - name: server-logs
         persistentVolumeClaim:
           claimName: server-logs-pvc
-      - name: binaries
-        emptyDir: {}  # Los binarios se copiarán desde una imagen builder
