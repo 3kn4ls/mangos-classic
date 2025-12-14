@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: admin-web
-        image: mangos-classic/admin-web:latest
+        image: mangos-classic/admin-web:v1.0.0
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 80
