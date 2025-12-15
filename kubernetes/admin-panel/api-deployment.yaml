@@ -19,8 +19,8 @@ spec:
     spec:
       containers:
       - name: admin-api
-        image: mangos-classic/admin-api:v1.0.0
-        imagePullPolicy: IfNotPresent
+        image: ghcr.io/3kn4ls/mangos-admin-api:v1.0.0
+        imagePullPolicy: Always
         ports:
         - containerPort: 3000
           name: http
